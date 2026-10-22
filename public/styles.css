@@ -107,6 +107,9 @@ textarea { resize: vertical; min-height: 110px; }
   cursor: pointer;
 }
 .btn:disabled { opacity: 0.6; cursor: wait; }
+.btn.secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); margin-bottom: 24px; }
+
+.section-title { font-size: 18px; margin: 0 0 12px; }
 
 .alert { border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; text-align: center; }
 .alert.ok { background: var(--ok-bg); color: var(--ok-text); }

@@ -45,8 +45,16 @@
 
       <button id="submit" class="btn" type="submit">Send feedback</button>
     </form>
+
+    <!-- Step 2: shown after submitting -->
+    <section id="after" hidden>
+      <button id="again" class="btn secondary" type="button">Leave another review</button>
+      <h2 class="section-title">What our guests are saying</h2>
+      <div id="reviews"></div>
+    </section>
   </main>
 
+  <script src="/reviews.js"></script>
   <script>
     const MAX = 500;
     const form = document.getElementById('form');
@@ -58,7 +66,16 @@
     const failure = document.getElementById('failure');
     const ratingError = document.getElementById('rating-error');
     const starLabels = document.querySelectorAll('#stars label');
+    const after = document.getElementById('after');
+    const reviews = mountReviews(document.getElementById('reviews'), { canDelete: false });
     let sending = false;
+
+    document.getElementById('again').addEventListener('click', () => {
+      success.hidden = true;
+      after.hidden = true;
+      form.hidden = false;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 
     function selectedRating() {
       const checked = form.querySelector('input[name="rating"]:checked');
@@ -114,11 +131,14 @@
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        // Success: clear the form
+        // Success: clear the form, then show all reviews
         form.reset();
         paintStars();
         updateCounter();
         success.hidden = false;
+        form.hidden = true;
+        after.hidden = false;
+        reviews.load();
       } catch (err) {
         // Failure: keep everything the customer typed
         failure.hidden = false;

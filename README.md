@@ -2,8 +2,10 @@
 
 Customers leave a rating and comment from a QR code on the table; the owner reads everything on a hidden `/admin` page.
 
-- **Customer page:** `/`
-- **Owner page:** `/admin` (no login yet, hidden link only)
+- **Customer page:** `/`. Step 1: leave feedback. Step 2: after submitting, the page shows the average, total and all reviews (read-only, with the rating filter), plus a "Leave another review" button.
+- **Owner page:** `/admin`. The same reviews view with **Delete** buttons (no login yet, hidden link only)
+
+The shared reviews view (summary, filter, list) lives in `public/reviews.js` and is used by both pages.
 
 ## Stack
 
