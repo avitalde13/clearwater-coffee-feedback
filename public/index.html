@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bean There Café – Feedback</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <div class="logo" aria-hidden="true">☕</div>
+      <h1>Bean There Café</h1>
+      <p>How was your visit today?</p>
+    </header>
+
+    <div id="success" class="alert ok" role="status" hidden>Thank you! Your feedback helps us get better ☕</div>
+    <div id="failure" class="alert err" role="alert" hidden>Something went wrong, please try again</div>
+
+    <form id="form" class="card" novalidate>
+      <div class="field">
+        <label class="label" for="name">Your name <span class="optional">(optional)</span></label>
+        <input type="text" id="name" name="name" maxlength="50" autocomplete="name"
+               placeholder="Leave blank to stay anonymous">
+      </div>
+
+      <div class="field">
+        <span class="label" id="rating-label">Rating <span class="required">*</span></span>
+        <fieldset class="stars" id="stars" aria-labelledby="rating-label">
+          <input type="radio" name="rating" id="r1" value="1"><label for="r1" title="1 star">★</label>
+          <input type="radio" name="rating" id="r2" value="2"><label for="r2" title="2 stars">★</label>
+          <input type="radio" name="rating" id="r3" value="3"><label for="r3" title="3 stars">★</label>
+          <input type="radio" name="rating" id="r4" value="4"><label for="r4" title="4 stars">★</label>
+          <input type="radio" name="rating" id="r5" value="5"><label for="r5" title="5 stars">★</label>
+        </fieldset>
+        <p id="rating-error" class="field-error" hidden>Please choose a rating from 1 to 5 stars.</p>
+      </div>
+
+      <div class="field">
+        <label class="label" for="comment">Comment <span class="optional">(optional)</span></label>
+        <textarea id="comment" name="comment" maxlength="500"
+                  placeholder="The croissant was warm and flaky"></textarea>
+        <div id="counter" class="counter" aria-live="polite">0 / 500</div>
+      </div>
+
+      <button id="submit" class="btn" type="submit">Send feedback</button>
+    </form>
+  </main>
+
+  <script>
+    const MAX = 500;
+    const form = document.getElementById('form');
+    const nameInput = document.getElementById('name');
+    const comment = document.getElementById('comment');
+    const counter = document.getElementById('counter');
+    const submitBtn = document.getElementById('submit');
+    const success = document.getElementById('success');
+    const failure = document.getElementById('failure');
+    const ratingError = document.getElementById('rating-error');
+    const starLabels = document.querySelectorAll('#stars label');
+    let sending = false;
+
+    function selectedRating() {
+      const checked = form.querySelector('input[name="rating"]:checked');
+      return checked ? Number(checked.value) : 0;
+    }
+
+    function paintStars() {
+      const r = selectedRating();
+      starLabels.forEach((label, i) => label.classList.toggle('on', i < r));
+    }
+
+    form.querySelectorAll('input[name="rating"]').forEach((radio) =>
+      radio.addEventListener('change', () => {
+        ratingError.hidden = true;
+        paintStars();
+      })
+    );
+
+    function updateCounter() {
+      const len = comment.value.length;
+      counter.textContent = `${len} / ${MAX}`;
+      counter.classList.toggle('near', len >= MAX - 50);
+    }
+    comment.addEventListener('input', updateCounter);
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (sending) return; // block double-submit
+
+      success.hidden = true;
+      failure.hidden = true;
+
+      const rating = selectedRating();
+      if (!rating) {
+        ratingError.hidden = false;
+        document.getElementById('r1').focus();
+        return;
+      }
+
+      sending = true;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending…';
+
+      try {
+        const res = await fetch('/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: nameInput.value,
+            rating,
+            comment: comment.value.slice(0, MAX),
+          }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        // Success: clear the form
+        form.reset();
+        paintStars();
+        updateCounter();
+        success.hidden = false;
+      } catch (err) {
+        // Failure: keep everything the customer typed
+        failure.hidden = false;
+      } finally {
+        sending = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send feedback';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  </script>
+</body>
+</html>
