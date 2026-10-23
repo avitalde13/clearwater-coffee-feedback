@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1572b6">
+  <meta name="description" content="Clearwater Coffee menu – coffee, breakfast, bakery and more.">
+  <title>Menu – Clearwater Coffee</title>
+  <link rel="icon" href="/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="hero" style="padding-bottom:72px">
+    <nav class="topnav" aria-label="Main">
+      <a class="brand" href="/">
+        <span class="brand-badge"><img src="/logo.svg" alt=""></span>
+        <span class="brand-name">Clearwater<small>Coffee</small></span>
+      </a>
+      <span class="navlinks">
+        <a href="/menu" aria-current="page">Menu</a>
+        <a href="/feedback">Feedback</a>
+      </span>
+    </nav>
+    <div class="hero-inner reveal" style="--i:1; margin-top:28px">
+      <h1 class="hero-title" style="text-align:center; margin:0 0 6px">Our menu</h1>
+      <p class="tagline">Made fresh every day. Prices in ₪, VAT included.</p>
+    </div>
+    <svg class="waves" viewBox="0 0 1200 48" preserveAspectRatio="none" aria-hidden="true">
+      <path class="wave-back" d="M0 20 Q150 2 300 20 T600 20 T900 20 T1200 20 T1500 20 T1800 20 L1800 48 L0 48 Z"/>
+      <path class="wave-front" d="M0 28 Q150 10 300 28 T600 28 T900 28 T1200 28 T1500 28 T1800 28 L1800 48 L0 48 Z"/>
+    </svg>
+  </header>
+
+  <main class="site" style="margin-top:-20px">
+    <nav class="menu-nav" id="menu-nav" aria-label="Menu sections"></nav>
+    <div id="menu"></div>
+
+    <section class="menu-note on-scroll">
+      <p><strong>Milk alternatives:</strong> oat, almond or soy for any drink, +₪2.</p>
+      <p><strong>Tags:</strong> <span class="tag">V</span> vegetarian · <span class="tag">VG</span> vegan · <span class="tag">GF</span> gluten-free</p>
+      <p>Allergies? Please tell us when you order, and we'll help you choose.</p>
+    </section>
+
+    <section class="cta on-scroll" style="margin-top:32px">
+      <h2>Enjoyed your order?</h2>
+      <p>We read every review. Tell us what you loved, or what we can do better.</p>
+      <a class="btn light inline" href="/feedback">Leave feedback</a>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <nav aria-label="Footer">
+      <a href="/">Home</a>
+      <a href="/feedback">Leave feedback</a>
+      <button type="button" data-owner-login>Owner login</button>
+    </nav>
+    <div>© <span id="year"></span> Clearwater Coffee</div>
+  </footer>
+
+  <dialog class="login-dialog" id="owner-login" aria-labelledby="login-title">
+    <form novalidate>
+      <h2 id="login-title">Owner login</h2>
+      <p class="help">For the café owner only.</p>
+      <label class="label" for="owner-password">Password</label>
+      <input type="password" id="owner-password" autocomplete="current-password" autocapitalize="off" spellcheck="false">
+      <p class="field-error" hidden></p>
+      <div class="dialog-actions">
+        <button type="button" class="btn ghost" data-close>Cancel</button>
+        <button type="submit" class="btn">Log in</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    // The whole menu lives here. To change a price or add a dish, edit this list.
+    // tags: 'V' vegetarian, 'VG' vegan, 'GF' gluten-free, 'NEW'
+    const MENU = [
+      {
+        id: 'coffee', title: 'Coffee', emoji: '☕', intro: 'House espresso blend, or ask for today’s single origin.',
+        items: [
+          { name: 'Espresso', price: 9, desc: 'Short, rich and sweet.', emoji: '☕', tags: ['VG', 'GF'] },
+          { name: 'Double espresso', price: 12, desc: 'Twice the good stuff.', emoji: '☕', tags: ['VG', 'GF'] },
+          { name: 'Americano', price: 12, desc: 'Espresso with hot water.', emoji: '☕', tags: ['VG', 'GF'] },
+          { name: 'Cortado', price: 13, desc: 'Espresso cut with a little warm milk.', emoji: '🥛', tags: ['V', 'GF'] },
+          { name: 'Cappuccino', price: 15, desc: 'Classic foam, a dusting of cocoa.', emoji: '☕', tags: ['V', 'GF'] },
+          { name: 'Flat white', price: 16, desc: 'Double ristretto, silky steamed milk.', emoji: '☕', tags: ['V', 'GF'] },
+          { name: 'Latte', price: 16, desc: 'Smooth and milky. Add vanilla or caramel +₪3.', emoji: '🥛', tags: ['V', 'GF'] },
+          { name: 'Mocha', price: 18, desc: 'Espresso, dark chocolate, steamed milk.', emoji: '🍫', tags: ['V', 'GF'] },
+          { name: 'Pour-over (V60)', price: 18, desc: 'Hand-brewed single origin, clean and bright.', emoji: '🫖', tags: ['VG', 'GF'] },
+        ],
+      },
+      {
+        id: 'cold', title: 'Cold drinks', emoji: '🧊', intro: 'For hot days and long afternoons.',
+        items: [
+          { name: 'Iced latte', price: 18, desc: 'Espresso over ice and cold milk.', emoji: '🧋', tags: ['V', 'GF'] },
+          { name: 'Cold brew', price: 17, desc: 'Steeped for 18 hours. Bold and smooth.', emoji: '🧊', tags: ['VG', 'GF'] },
+          { name: 'Iced matcha latte', price: 20, desc: 'Ceremonial matcha with oat milk.', emoji: '🍵', tags: ['VG', 'GF', 'NEW'] },
+          { name: 'Affogato', price: 22, desc: 'Vanilla ice cream drowned in espresso.', emoji: '🍨', tags: ['V', 'GF'] },
+          { name: 'Fresh orange juice', price: 16, desc: 'Squeezed to order.', emoji: '🍊', tags: ['VG', 'GF'] },
+          { name: 'Mint lemonade', price: 14, desc: 'Fresh lemons, mint and a little sugar.', emoji: '🍋', tags: ['VG', 'GF'] },
+        ],
+      },
+      {
+        id: 'more', title: 'Tea & more', emoji: '🍵', intro: 'Not a coffee person? We’ve got you.',
+        items: [
+          { name: 'Matcha latte', price: 19, desc: 'Whisked matcha with steamed milk.', emoji: '🍵', tags: ['V', 'GF'] },
+          { name: 'Chai latte', price: 17, desc: 'Warm spices, black tea and milk.', emoji: '🫖', tags: ['V', 'GF'] },
+          { name: 'Hot chocolate', price: 16, desc: 'Real dark chocolate. Marshmallows +₪2.', emoji: '🍫', tags: ['V', 'GF'] },
+          { name: 'Fresh mint tea', price: 12, desc: 'A big handful of mint leaves.', emoji: '🌿', tags: ['VG', 'GF'] },
+        ],
+      },
+      {
+        id: 'breakfast', title: 'Breakfast', emoji: '🍳', intro: 'Served all day, every day.',
+        items: [
+          { name: 'Clearwater breakfast', price: 62, desc: 'Two eggs any style, chopped salad, cheeses, tahini, jam, bread basket, and a hot drink.', emoji: '🍳', tags: ['V'] },
+          { name: 'Shakshuka', price: 52, desc: 'Eggs in spiced tomato and pepper sauce, tahini, fresh bread.', emoji: '🍳', tags: ['V'] },
+          { name: 'Green shakshuka', price: 54, desc: 'Spinach, leek and feta with soft eggs.', emoji: '🥬', tags: ['V', 'NEW'] },
+          { name: 'Avocado toast', price: 46, desc: 'Sourdough, smashed avocado, chili, lemon, poached egg.', emoji: '🥑', tags: ['V'] },
+          { name: 'Buttermilk pancakes', price: 44, desc: 'Stack of three, maple syrup, berries, whipped cream.', emoji: '🥞', tags: ['V'] },
+          { name: 'Halloumi toast', price: 44, desc: 'Grilled halloumi, tomato, za’atar, sourdough.', emoji: '🧀', tags: ['V'] },
+          { name: 'Granola bowl', price: 38, desc: 'House granola, yogurt, seasonal fruit, honey.', emoji: '🥣', tags: ['V'] },
+          { name: 'Omelette', price: 42, desc: 'Three eggs with your choice of cheese, herbs or mushrooms. Comes with salad and bread.', emoji: '🍳', tags: ['V', 'GF'] },
+        ],
+      },
+      {
+        id: 'bakery', title: 'Bakery', emoji: '🥐', intro: 'Baked in our oven every morning, while it lasts.',
+        items: [
+          { name: 'Butter croissant', price: 14, desc: 'Flaky, golden, 100% butter.', emoji: '🥐', tags: ['V'] },
+          { name: 'Almond croissant', price: 18, desc: 'Twice-baked with almond cream.', emoji: '🥐', tags: ['V'] },
+          { name: 'Pain au chocolat', price: 16, desc: 'Two bars of dark chocolate inside.', emoji: '🍫', tags: ['V'] },
+          { name: 'Cinnamon roll', price: 17, desc: 'Soft, sticky, with cream cheese glaze.', emoji: '🌀', tags: ['V'] },
+          { name: 'Banana bread', price: 15, desc: 'Moist, with walnuts. Ask for it toasted.', emoji: '🍌', tags: ['V'] },
+          { name: 'Basque cheesecake', price: 26, desc: 'Burnt top, creamy middle.', emoji: '🍰', tags: ['V', 'GF'] },
+          { name: 'Chocolate chip cookie', price: 10, desc: 'Crisp edges, gooey center.', emoji: '🍪', tags: ['V'] },
+          { name: 'Sourdough loaf', price: 32, desc: 'Take one home. Baked daily.', emoji: '🍞', tags: ['VG'] },
+        ],
+      },
+      {
+        id: 'lunch', title: 'Sandwiches & salads', emoji: '🥪', intro: 'From 11:30.',
+        items: [
+          { name: 'Tuna ciabatta', price: 42, desc: 'Tuna salad, egg, pickles, tomato, aioli.', emoji: '🥪', tags: [] },
+          { name: 'Mozzarella & pesto', price: 40, desc: 'Fresh mozzarella, tomato, basil pesto, arugula.', emoji: '🥪', tags: ['V'] },
+          { name: 'Roasted veggie wrap', price: 38, desc: 'Roasted peppers, eggplant, hummus, greens.', emoji: '🌯', tags: ['VG'] },
+          { name: 'Greek salad', price: 44, desc: 'Tomato, cucumber, olives, red onion, feta.', emoji: '🥗', tags: ['V', 'GF'] },
+          { name: 'Quinoa bowl', price: 46, desc: 'Quinoa, sweet potato, avocado, chickpeas, tahini.', emoji: '🥗', tags: ['VG', 'GF'] },
+        ],
+      },
+    ];
+
+    const nav = document.getElementById('menu-nav');
+    const root = document.getElementById('menu');
+
+    MENU.forEach((cat, ci) => {
+      const link = document.createElement('a');
+      link.className = 'chip' + (ci === 0 ? ' active' : '');
+      link.href = `#${cat.id}`;
+      link.textContent = `${cat.emoji} ${cat.title}`;
+      nav.append(link);
+
+      const section = document.createElement('section');
+      section.className = 'menu-cat on-scroll';
+      section.id = cat.id;
+      const h2 = document.createElement('h2');
+      h2.textContent = `${cat.emoji} ${cat.title}`;
+      const intro = document.createElement('p');
+      intro.textContent = cat.intro;
+      const grid = document.createElement('div');
+      grid.className = 'menu-items';
+
+      cat.items.forEach((item) => {
+        const card = document.createElement('article');
+        card.className = 'menu-item';
+        const emoji = document.createElement('div');
+        emoji.className = 'emoji';
+        emoji.setAttribute('aria-hidden', 'true');
+        emoji.textContent = item.emoji;
+        const body = document.createElement('div');
+        const name = document.createElement('h3');
+        name.textContent = item.name;
+        if (item.tags.length) {
+          const tags = document.createElement('span');
+          tags.className = 'tags';
+          item.tags.forEach((t) => {
+            const tag = document.createElement('span');
+            tag.className = 'tag' + (t === 'NEW' ? ' new' : '');
+            tag.textContent = t;
+            tags.append(tag);
+          });
+          name.append(tags);
+        }
+        const desc = document.createElement('p');
+        desc.textContent = item.desc;
+        body.append(name, desc);
+        const price = document.createElement('div');
+        price.className = 'price';
+        price.textContent = `₪${item.price}`;
+        card.append(emoji, body, price);
+        grid.append(card);
+      });
+
+      section.append(h2, intro, grid);
+      root.append(section);
+    });
+
+    // Highlight the section you're looking at in the sticky bar.
+    if ('IntersectionObserver' in window) {
+      const chips = [...nav.querySelectorAll('.chip')];
+      const spy = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            chips.forEach((c) => c.classList.toggle('active', c.getAttribute('href') === `#${entry.target.id}`));
+            const active = chips.find((c) => c.classList.contains('active'));
+            active?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+          });
+        },
+        { rootMargin: '-45% 0px -50% 0px' }
+      );
+      MENU.forEach((cat) => spy.observe(document.getElementById(cat.id)));
+    }
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+  <script src="/site.js"></script>
+</body>
+</html>

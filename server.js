@@ -78,7 +78,7 @@ const PUBLIC_COLUMNS = 'id, name, comment, created_at, (photo IS NOT NULL) AS ha
 const PUBLIC_LIMIT = 100;
 
 // Create feedback
-app.post('/feedback', async (req, res) => {
+async function createFeedback(req, res) {
   const { data, error } = validateFeedback(req.body);
   if (error) return res.status(400).json({ error });
 
@@ -94,10 +94,12 @@ app.post('/feedback', async (req, res) => {
     console.error('POST /feedback failed:', err);
     res.status(500).json({ error: 'Could not save feedback.' });
   }
-});
+}
+app.post('/api/feedback', createFeedback);
+app.post('/feedback', createFeedback); // old address, for pages opened before the move to /api
 
 // Public list for the customer page: name, comment, date, photo. No phone numbers.
-app.get('/feedback/public', async (req, res) => {
+app.get('/api/feedback/public', async (req, res) => {
   try {
     const { rows } = await pool.query(
       `SELECT ${PUBLIC_COLUMNS} FROM feedback
@@ -112,7 +114,7 @@ app.get('/feedback/public', async (req, res) => {
 
 // Admin list, newest first. Optional ?rating=1..5 filters the list.
 // Stats (average + count) always cover ALL feedback, not just the filtered list.
-app.get('/feedback', requireAdmin, async (req, res) => {
+app.get('/api/feedback', requireAdmin, async (req, res) => {
   let ratingFilter = null;
   if (req.query.rating !== undefined && req.query.rating !== '') {
     ratingFilter = Number(req.query.rating);
@@ -145,7 +147,7 @@ app.get('/feedback', requireAdmin, async (req, res) => {
 });
 
 // Serve a review's photo
-app.get('/feedback/:id/photo', async (req, res) => {
+app.get('/api/feedback/:id/photo', async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id) || id < 1) return res.status(400).end();
 
@@ -162,7 +164,7 @@ app.get('/feedback/:id/photo', async (req, res) => {
 });
 
 // Delete feedback (admin only)
-app.delete('/feedback/:id', requireAdmin, async (req, res) => {
+app.delete('/api/feedback/:id', requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id) || id < 1) {
     return res.status(400).json({ error: 'Invalid id.' });
@@ -178,10 +180,12 @@ app.delete('/feedback/:id', requireAdmin, async (req, res) => {
   }
 });
 
+// Pages. "/" is the landing page (public/index.html, served by express.static).
+const page = (file) => (req, res) => res.sendFile(path.join(__dirname, 'public', file));
+app.get('/menu', page('menu.html'));
+app.get('/feedback', page('feedback.html')); // the QR code on the tables points here
 // Owner page. The page itself is public; it asks for the admin password before showing any data.
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
-});
+app.get('/admin', page('admin.html'));
 
 const PORT = process.env.PORT || 3000;
 

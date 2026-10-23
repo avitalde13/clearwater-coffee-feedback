@@ -103,12 +103,12 @@ function mountReviews(root, { canDelete = false, onUnauthorized = () => {} } = {
 
     if (item.has_photo) {
       const link = document.createElement('a');
-      link.href = `/feedback/${item.id}/photo`;
+      link.href = `/api/feedback/${item.id}/photo`;
       link.target = '_blank';
       link.rel = 'noopener';
       const img = document.createElement('img');
       img.className = 'review-photo';
-      img.src = `/feedback/${item.id}/photo`;
+      img.src = `/api/feedback/${item.id}/photo`;
       img.alt = 'Photo from customer';
       img.loading = 'lazy';
       link.append(img);
@@ -119,7 +119,7 @@ function mountReviews(root, { canDelete = false, onUnauthorized = () => {} } = {
 
   async function load() {
     try {
-      const url = currentRating ? `/feedback?rating=${currentRating}` : '/feedback';
+      const url = currentRating ? `/api/feedback?rating=${currentRating}` : '/api/feedback';
       const res = await fetch(url);
       if (res.status === 401 || res.status === 403) return onUnauthorized();
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -148,7 +148,7 @@ function mountReviews(root, { canDelete = false, onUnauthorized = () => {} } = {
 
     btn.disabled = true;
     try {
-      const res = await fetch(`/feedback/${item.id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/feedback/${item.id}`, { method: 'DELETE' });
       if (res.status === 401 || res.status === 403) return onUnauthorized();
       if (!res.ok && res.status !== 404) throw new Error(`HTTP ${res.status}`);
       await load();

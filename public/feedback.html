@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1572b6">
+  <meta name="format-detection" content="telephone=no">
+  <title>Clearwater Coffee – Feedback</title>
+  <link rel="icon" href="/logo.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/logo.svg">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="back-row"><a class="back-link" href="/">← Home</a></div>
+    <div class="hero-inner">
+      <div class="logo-badge"><img src="/logo.svg" alt=""></div>
+      <h1 class="wordmark">Clearwater <small>Coffee</small></h1>
+      <p class="tagline">How was your visit today?</p>
+    </div>
+    <svg class="waves" viewBox="0 0 1200 48" preserveAspectRatio="none" aria-hidden="true">
+      <path class="wave-back" d="M0 20 Q150 2 300 20 T600 20 T900 20 T1200 20 T1500 20 T1800 20 L1800 48 L0 48 Z"/>
+      <path class="wave-front" d="M0 28 Q150 10 300 28 T600 28 T900 28 T1200 28 T1500 28 T1800 28 L1800 48 L0 48 Z"/>
+    </svg>
+  </header>
+
+  <main class="container">
+    <div id="success" class="thanks" role="status" hidden>
+      <svg class="check" viewBox="0 0 56 56" aria-hidden="true">
+        <circle cx="28" cy="28" r="25"/>
+        <path d="M17 29 l7 7 l15 -16"/>
+      </svg>
+      <strong>Thank you!</strong>
+      <span>Your feedback helps us get better ☕</span>
+    </div>
+    <div id="failure" class="alert err" role="alert" hidden>Something went wrong, please try again</div>
+
+    <form id="form" class="card reveal" novalidate>
+      <div class="field rating-field reveal" style="--i:1" id="rating-field">
+        <span class="rating-label" id="rating-label">Rate your visit</span>
+        <fieldset class="stars" id="stars" aria-labelledby="rating-label" aria-required="true">
+          <input type="radio" name="rating" id="r1" value="1"><label for="r1" style="--i:0" title="1 star">★</label>
+          <input type="radio" name="rating" id="r2" value="2"><label for="r2" style="--i:1" title="2 stars">★</label>
+          <input type="radio" name="rating" id="r3" value="3"><label for="r3" style="--i:2" title="3 stars">★</label>
+          <input type="radio" name="rating" id="r4" value="4"><label for="r4" style="--i:3" title="4 stars">★</label>
+          <input type="radio" name="rating" id="r5" value="5"><label for="r5" style="--i:4" title="5 stars">★</label>
+        </fieldset>
+        <p class="rating-word" id="rating-word" aria-live="polite"></p>
+        <p id="rating-error" class="field-error big" hidden>Please tap a star to rate your visit.</p>
+      </div>
+
+      <div class="field reveal" style="--i:2">
+        <label class="label" for="name">Your name <span class="optional">(optional)</span></label>
+        <input type="text" id="name" name="name" maxlength="50" autocomplete="name"
+               placeholder="Leave blank to stay anonymous">
+      </div>
+
+      <div class="field reveal" style="--i:3">
+        <label class="label" for="phone">Phone number <span class="required">*</span></label>
+        <input type="tel" id="phone" name="phone" maxlength="20" autocomplete="tel" inputmode="tel"
+               placeholder="050-123-4567" aria-describedby="phone-help">
+        <p id="phone-help" class="help">So we can follow up with you. Only the café owner sees it, never the public.</p>
+        <p id="phone-error" class="field-error" hidden></p>
+      </div>
+
+      <div class="field reveal" style="--i:4">
+        <label class="label" for="comment">Comment <span class="optional">(optional)</span></label>
+        <textarea id="comment" name="comment" maxlength="500"
+                  placeholder="The croissant was warm and flaky"></textarea>
+        <div id="counter" class="counter" aria-live="polite">0 / 500</div>
+      </div>
+
+      <div class="field reveal" style="--i:5">
+        <span class="label">Photo <span class="optional">(optional)</span></span>
+        <label class="photo-pick" id="photo-pick" for="photo">
+          <span aria-hidden="true">📷</span> Add a photo
+        </label>
+        <input type="file" id="photo" accept="image/*" class="visually-hidden">
+        <div class="photo-preview" id="photo-preview" hidden>
+          <img id="photo-img" alt="Selected photo">
+          <button type="button" class="photo-remove" id="photo-remove">Remove photo</button>
+        </div>
+        <p id="photo-error" class="field-error" hidden></p>
+      </div>
+
+      <button id="submit" class="btn reveal" style="--i:6" type="submit">Send feedback</button>
+    </form>
+
+    <section class="reveal" style="--i:7" aria-labelledby="public-title">
+      <h2 class="section-title" id="public-title">What our guests are saying</h2>
+      <ul class="list public-list" id="public-list"></ul>
+      <p class="empty" id="public-empty" hidden>No reviews yet. Be the first!</p>
+      <p class="field-error" id="public-error" hidden>Couldn't load reviews right now.</p>
+    </section>
+  </main>
+
+  <script>
+    const MAX = 500;
+    const PHOTO_MAX_SIDE = 1600; // px; keeps uploads small on phone data
+    const form = document.getElementById('form');
+    const nameInput = document.getElementById('name');
+    const phoneInput = document.getElementById('phone');
+    const phoneError = document.getElementById('phone-error');
+    const comment = document.getElementById('comment');
+    const counter = document.getElementById('counter');
+    const submitBtn = document.getElementById('submit');
+    const success = document.getElementById('success');
+    const failure = document.getElementById('failure');
+    const ratingField = document.getElementById('rating-field');
+    const ratingError = document.getElementById('rating-error');
+    const starLabels = document.querySelectorAll('#stars label');
+    const photoInput = document.getElementById('photo');
+    const photoPick = document.getElementById('photo-pick');
+    const photoPreview = document.getElementById('photo-preview');
+    const photoImg = document.getElementById('photo-img');
+    const photoError = document.getElementById('photo-error');
+    let photoData = null; // resized JPEG as a data URL
+
+    // ----- Public reviews: name, date, comment, photo only (no phone, no rating) -----
+    const publicList = document.getElementById('public-list');
+    const dateFmt = new Intl.DateTimeFormat(undefined, {
+      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+    });
+
+    function renderPublic(item, index) {
+      const li = document.createElement('li');
+      li.className = 'review';
+      li.style.setProperty('--i', Math.min(index, 8));
+      const who = document.createElement('div');
+      who.className = 'review-who';
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar' + (item.name ? '' : ' anon');
+      avatar.setAttribute('aria-hidden', 'true');
+      avatar.textContent = item.name ? item.name.trim().charAt(0).toUpperCase() : '?';
+      const meta = document.createElement('div');
+      const name = document.createElement('div');
+      name.className = 'review-name' + (item.name ? '' : ' anon');
+      name.textContent = item.name || 'Anonymous';
+      const date = document.createElement('div');
+      date.className = 'review-date';
+      date.textContent = dateFmt.format(new Date(item.created_at));
+      meta.append(name, date);
+      who.append(avatar, meta);
+      li.append(who);
+      if (item.comment) {
+        const p = document.createElement('p');
+        p.className = 'review-comment';
+        p.textContent = item.comment; // textContent: customer text can't inject HTML
+        li.append(p);
+      }
+      if (item.has_photo) {
+        const img = document.createElement('img');
+        img.className = 'review-photo';
+        img.src = `/api/feedback/${item.id}/photo`;
+        img.alt = `Photo from ${item.name || 'a guest'}`;
+        img.loading = 'lazy';
+        li.append(img);
+      }
+      return li;
+    }
+
+    async function loadPublic() {
+      try {
+        const res = await fetch('/api/feedback/public');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const { items } = await res.json();
+        publicList.replaceChildren(...items.map(renderPublic));
+        document.getElementById('public-empty').hidden = items.length > 0;
+        document.getElementById('public-error').hidden = true;
+      } catch (err) {
+        document.getElementById('public-error').hidden = false;
+      }
+    }
+    loadPublic();
+    let sending = false;
+
+    function selectedRating() {
+      const checked = form.querySelector('input[name="rating"]:checked');
+      return checked ? Number(checked.value) : 0;
+    }
+
+    const RATING_WORDS = ['', 'Not good', 'Could be better', 'Okay', 'Great!', 'Amazing!'];
+    const ratingWord = document.getElementById('rating-word');
+
+    function paintStars() {
+      const r = selectedRating();
+      starLabels.forEach((label, i) => label.classList.toggle('on', i < r));
+      ratingWord.textContent = RATING_WORDS[r];
+      ratingWord.classList.remove('show');
+      void ratingWord.offsetWidth; // restart the fade-in
+      ratingWord.classList.toggle('show', r > 0);
+    }
+
+    form.querySelectorAll('input[name="rating"]').forEach((radio) =>
+      radio.addEventListener('change', () => {
+        ratingError.hidden = true;
+        ratingField.classList.remove('invalid');
+        paintStars();
+      })
+    );
+
+    function updateCounter() {
+      const len = comment.value.length;
+      counter.textContent = `${len} / ${MAX}`;
+      counter.classList.toggle('near', len >= MAX - 50);
+    }
+    comment.addEventListener('input', updateCounter);
+
+    // Same rule as the server: 7–15 digits, optional leading +, spaces/dashes/brackets allowed.
+    function phoneProblem(value) {
+      const v = value.trim();
+      if (!v) return 'Please enter your phone number.';
+      if (!/^\+?\d{7,15}$/.test(v.replace(/[\s\-().]/g, ''))) return 'Please enter a valid phone number.';
+      return '';
+    }
+    phoneInput.addEventListener('input', () => {
+      phoneError.hidden = true;
+      phoneInput.classList.remove('invalid');
+    });
+
+    // Photo: decode, scale down to PHOTO_MAX_SIDE and re-encode as JPEG.
+    // Works with iPhone photos (Safari hands over JPEG; Safari can also decode HEIC).
+    function loadImage(file) {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('decode failed')); };
+        img.src = url;
+      });
+    }
+
+    async function resizePhoto(file) {
+      const img = await loadImage(file);
+      const scale = Math.min(1, PHOTO_MAX_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.naturalWidth * scale);
+      canvas.height = Math.round(img.naturalHeight * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL('image/jpeg', 0.82);
+    }
+
+    function clearPhoto() {
+      photoData = null;
+      photoInput.value = '';
+      photoImg.removeAttribute('src');
+      photoPreview.hidden = true;
+      photoPick.hidden = false;
+    }
+
+    photoInput.addEventListener('change', async () => {
+      photoError.hidden = true;
+      const file = photoInput.files[0];
+      if (!file) return;
+      if (file.type && !file.type.startsWith('image/')) {
+        photoError.textContent = 'Please choose an image file.';
+        photoError.hidden = false;
+        clearPhoto();
+        return;
+      }
+      try {
+        photoData = await resizePhoto(file);
+        photoImg.src = photoData;
+        photoPreview.hidden = false;
+        photoPick.hidden = true;
+      } catch (err) {
+        clearPhoto();
+        photoError.textContent = "Couldn't read that photo. Try a JPG or PNG.";
+        photoError.hidden = false;
+      }
+    });
+    document.getElementById('photo-remove').addEventListener('click', clearPhoto);
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (sending) return; // block double-submit
+
+      success.hidden = true;
+      failure.hidden = true;
+
+      const rating = selectedRating();
+      const phoneMsg = phoneProblem(phoneInput.value);
+
+      if (!rating) {
+        ratingError.hidden = false;
+        ratingField.classList.remove('invalid');
+        void ratingField.offsetWidth; // replay the shake on every try
+        ratingField.classList.add('invalid');
+      }
+      if (phoneMsg) {
+        phoneError.textContent = phoneMsg;
+        phoneError.hidden = false;
+        phoneInput.classList.remove('invalid');
+        void phoneInput.offsetWidth;
+        phoneInput.classList.add('invalid');
+      }
+      if (!rating || phoneMsg) {
+        (rating ? phoneInput : ratingField).scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      sending = true;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>Sending…';
+
+      try {
+        const res = await fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: nameInput.value,
+            phone: phoneInput.value,
+            rating,
+            comment: comment.value.slice(0, MAX),
+            photo: photoData,
+          }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        // Success: clear the form
+        form.reset();
+        paintStars();
+        updateCounter();
+        clearPhoto();
+        success.hidden = false;
+        loadPublic();
+      } catch (err) {
+        // Failure: keep everything the customer typed
+        failure.hidden = false;
+      } finally {
+        sending = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send feedback';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  </script>
+</body>
+</html>

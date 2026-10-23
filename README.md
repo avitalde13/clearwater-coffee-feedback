@@ -1,9 +1,13 @@
-# Clearwater Coffee – Customer Feedback
+# Clearwater Coffee – Website and Customer Feedback
 
-Customers leave a rating and comment from a QR code on the table; the owner reads everything on a hidden `/admin` page.
+The café's website: a landing page, the menu, a feedback form customers reach from a QR code on the table, and a password-protected owner dashboard.
 
-- **Customer page:** `/`. Rating (required), name (optional), phone (required), comment (optional, 500 chars), photo (optional). Below the form, a public list of reviews showing **only name, date, comment and photo** (no phone, no rating).
-- **Owner page:** `/admin`. Locked by an admin code. After unlocking: average, total, rating filter, every review with phone and photo, and **Delete**.
+- **Home:** `/`. Landing page: hero with an animated coffee cup, buttons to the menu and feedback, guest favourites, the latest guest comments, opening hours (with "Open now", Israel time), and an **Owner login** button in the footer (password only, then on to `/admin`).
+- **Menu:** `/menu`. Coffee, cold drinks, tea, breakfast, bakery, sandwiches and salads, with prices and V / VG / GF tags. The whole menu is the `MENU` list at the top of the script in `public/menu.html`: edit it to change a dish or price.
+- **Feedback:** `/feedback` (the QR code on the tables points here). Rating (required), name (optional), phone (required), comment (optional, 500 chars), photo (optional). Below the form, a public list of reviews showing **only name, date, comment and photo** (no phone, no rating).
+- **Owner page:** `/admin`. Locked by a password. After logging in: average, total, rating filter, every review with phone and photo, and **Delete**.
+
+> The menu, prices, opening hours and "good to know" details are placeholders. Confirm them with the owner.
 
 ## Admin login
 
@@ -14,7 +18,7 @@ Customers leave a rating and comment from a QR code on the table; the owner read
 - **Change password:** after logging in, tap **Change password** (needs the current password). The new password is stored hashed (scrypt) in the `admin_auth` table and replaces `ADMIN_CODE`. Other devices are logged out.
 - **Forgot password:** set a **new** `ADMIN_CODE` in Railway and send it to the owner. A changed `ADMIN_CODE` overrides the saved password, so they can log in and choose a new one.
 - Logging in sets an HttpOnly cookie for 7 days. 5 wrong passwords from one IP blocks it for 15 minutes.
-- The admin-only API (`GET /feedback`, `DELETE /feedback/:id`, `POST /admin/password`) returns `401` without the login cookie.
+- The admin-only API (`GET /api/feedback`, `DELETE /api/feedback/:id`, `POST /admin/password`) returns `401` without the login cookie.
 
 ## Stack
 
@@ -51,15 +55,15 @@ Created automatically on startup:
 
 | Method | Path              | Description |
 |--------|-------------------|-------------|
-| POST   | `/feedback`       | Body `{ name?, phone, rating, comment?, photo? }` (`photo` is a `data:image/...;base64,` URL). Returns `201` with the new row, or `400` with `{ error }`. |
-| GET    | `/feedback/public` | Public list: `{ items: [{ id, name, comment, created_at, has_photo }] }`, newest 100. |
+| POST   | `/api/feedback`   | Body `{ name?, phone, rating, comment?, photo? }` (`photo` is a `data:image/...;base64,` URL). Returns `201` with the new row, or `400` with `{ error }`. |
+| GET    | `/api/feedback/public` | Public list: `{ items: [{ id, name, comment, created_at, has_photo }] }`, newest 100. |
 | POST   | `/admin/login`    | Body `{ password }`. Sets the admin cookie. |
 | POST   | `/admin/password` (admin) | Body `{ currentPassword, newPassword }`. Changes the password. |
 | POST   | `/admin/logout`   | Clears the admin cookie. |
 | GET    | `/admin/session`  | `{ loggedIn, configured }`. |
-| GET    | `/feedback` (admin) | Returns `{ items, stats: { average, count } }`, newest first. Optional `?rating=1..5` filters `items`. |
-| GET    | `/feedback/:id/photo` | The review's photo. |
-| DELETE | `/feedback/:id` (admin) | Returns `204`, or `404` if not found. |
+| GET    | `/api/feedback` (admin) | Returns `{ items, stats: { average, count } }`, newest first. Optional `?rating=1..5` filters `items`. |
+| GET    | `/api/feedback/:id/photo` | The review's photo. |
+| DELETE | `/api/feedback/:id` (admin) | Returns `204`, or `404` if not found. |
 
 **Filter decision:** `stats` (the average and total at the top of `/admin`) always cover **all** reviews, even when a rating filter is active. Filtering to "1 star" would otherwise always show "1.0 ★", which tells the owner nothing. The admin page shows "Showing X of Y reviews" instead.
 
