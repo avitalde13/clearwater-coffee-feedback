@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1572b6">
+  <meta name="format-detection" content="telephone=no">
   <title>Bean There Café – Feedback</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
@@ -18,6 +20,18 @@
     <div id="failure" class="alert err" role="alert" hidden>Something went wrong, please try again</div>
 
     <form id="form" class="card" novalidate>
+      <div class="field rating-field" id="rating-field">
+        <span class="rating-label" id="rating-label">Rate your visit <span class="req-badge">Required</span></span>
+        <fieldset class="stars" id="stars" aria-labelledby="rating-label" aria-required="true">
+          <input type="radio" name="rating" id="r1" value="1"><label for="r1" title="1 star">★</label>
+          <input type="radio" name="rating" id="r2" value="2"><label for="r2" title="2 stars">★</label>
+          <input type="radio" name="rating" id="r3" value="3"><label for="r3" title="3 stars">★</label>
+          <input type="radio" name="rating" id="r4" value="4"><label for="r4" title="4 stars">★</label>
+          <input type="radio" name="rating" id="r5" value="5"><label for="r5" title="5 stars">★</label>
+        </fieldset>
+        <p id="rating-error" class="field-error big" hidden>Please tap a star to rate your visit.</p>
+      </div>
+
       <div class="field">
         <label class="label" for="name">Your name <span class="optional">(optional)</span></label>
         <input type="text" id="name" name="name" maxlength="50" autocomplete="name"
@@ -25,15 +39,11 @@
       </div>
 
       <div class="field">
-        <span class="label" id="rating-label">Rating <span class="required">*</span></span>
-        <fieldset class="stars" id="stars" aria-labelledby="rating-label">
-          <input type="radio" name="rating" id="r1" value="1"><label for="r1" title="1 star">★</label>
-          <input type="radio" name="rating" id="r2" value="2"><label for="r2" title="2 stars">★</label>
-          <input type="radio" name="rating" id="r3" value="3"><label for="r3" title="3 stars">★</label>
-          <input type="radio" name="rating" id="r4" value="4"><label for="r4" title="4 stars">★</label>
-          <input type="radio" name="rating" id="r5" value="5"><label for="r5" title="5 stars">★</label>
-        </fieldset>
-        <p id="rating-error" class="field-error" hidden>Please choose a rating from 1 to 5 stars.</p>
+        <label class="label" for="phone">Phone number <span class="required">*</span></label>
+        <input type="tel" id="phone" name="phone" maxlength="20" autocomplete="tel" inputmode="tel"
+               placeholder="050-123-4567" aria-describedby="phone-help">
+        <p id="phone-help" class="help">So we can follow up with you. Only the café owner sees it.</p>
+        <p id="phone-error" class="field-error" hidden></p>
       </div>
 
       <div class="field">
@@ -43,39 +53,45 @@
         <div id="counter" class="counter" aria-live="polite">0 / 500</div>
       </div>
 
+      <div class="field">
+        <span class="label">Photo <span class="optional">(optional)</span></span>
+        <label class="photo-pick" id="photo-pick" for="photo">
+          <span aria-hidden="true">📷</span> Add a photo
+        </label>
+        <input type="file" id="photo" accept="image/*" class="visually-hidden">
+        <div class="photo-preview" id="photo-preview" hidden>
+          <img id="photo-img" alt="Selected photo">
+          <button type="button" class="photo-remove" id="photo-remove">Remove photo</button>
+        </div>
+        <p id="photo-error" class="field-error" hidden></p>
+      </div>
+
       <button id="submit" class="btn" type="submit">Send feedback</button>
     </form>
-
-    <!-- Step 2: shown after submitting -->
-    <section id="after" hidden>
-      <button id="again" class="btn secondary" type="button">Leave another review</button>
-      <h2 class="section-title">What our guests are saying</h2>
-      <div id="reviews"></div>
-    </section>
   </main>
 
-  <script src="/reviews.js"></script>
   <script>
     const MAX = 500;
+    const PHOTO_MAX_SIDE = 1600; // px; keeps uploads small on phone data
     const form = document.getElementById('form');
     const nameInput = document.getElementById('name');
+    const phoneInput = document.getElementById('phone');
+    const phoneError = document.getElementById('phone-error');
     const comment = document.getElementById('comment');
     const counter = document.getElementById('counter');
     const submitBtn = document.getElementById('submit');
     const success = document.getElementById('success');
     const failure = document.getElementById('failure');
+    const ratingField = document.getElementById('rating-field');
     const ratingError = document.getElementById('rating-error');
     const starLabels = document.querySelectorAll('#stars label');
-    const after = document.getElementById('after');
-    const reviews = mountReviews(document.getElementById('reviews'), { canDelete: false });
+    const photoInput = document.getElementById('photo');
+    const photoPick = document.getElementById('photo-pick');
+    const photoPreview = document.getElementById('photo-preview');
+    const photoImg = document.getElementById('photo-img');
+    const photoError = document.getElementById('photo-error');
+    let photoData = null; // resized JPEG as a data URL
     let sending = false;
-
-    document.getElementById('again').addEventListener('click', () => {
-      success.hidden = true;
-      after.hidden = true;
-      form.hidden = false;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
 
     function selectedRating() {
       const checked = form.querySelector('input[name="rating"]:checked');
@@ -90,6 +106,7 @@
     form.querySelectorAll('input[name="rating"]').forEach((radio) =>
       radio.addEventListener('change', () => {
         ratingError.hidden = true;
+        ratingField.classList.remove('invalid');
         paintStars();
       })
     );
@@ -101,6 +118,71 @@
     }
     comment.addEventListener('input', updateCounter);
 
+    // Same rule as the server: 7–15 digits, optional leading +, spaces/dashes/brackets allowed.
+    function phoneProblem(value) {
+      const v = value.trim();
+      if (!v) return 'Please enter your phone number.';
+      if (!/^\+?\d{7,15}$/.test(v.replace(/[\s\-().]/g, ''))) return 'Please enter a valid phone number.';
+      return '';
+    }
+    phoneInput.addEventListener('input', () => {
+      phoneError.hidden = true;
+      phoneInput.classList.remove('invalid');
+    });
+
+    // Photo: decode, scale down to PHOTO_MAX_SIDE and re-encode as JPEG.
+    // Works with iPhone photos (Safari hands over JPEG; Safari can also decode HEIC).
+    function loadImage(file) {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('decode failed')); };
+        img.src = url;
+      });
+    }
+
+    async function resizePhoto(file) {
+      const img = await loadImage(file);
+      const scale = Math.min(1, PHOTO_MAX_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.naturalWidth * scale);
+      canvas.height = Math.round(img.naturalHeight * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL('image/jpeg', 0.82);
+    }
+
+    function clearPhoto() {
+      photoData = null;
+      photoInput.value = '';
+      photoImg.removeAttribute('src');
+      photoPreview.hidden = true;
+      photoPick.hidden = false;
+    }
+
+    photoInput.addEventListener('change', async () => {
+      photoError.hidden = true;
+      const file = photoInput.files[0];
+      if (!file) return;
+      if (file.type && !file.type.startsWith('image/')) {
+        photoError.textContent = 'Please choose an image file.';
+        photoError.hidden = false;
+        clearPhoto();
+        return;
+      }
+      try {
+        photoData = await resizePhoto(file);
+        photoImg.src = photoData;
+        photoPreview.hidden = false;
+        photoPick.hidden = true;
+      } catch (err) {
+        clearPhoto();
+        photoError.textContent = "Couldn't read that photo. Try a JPG or PNG.";
+        photoError.hidden = false;
+      }
+    });
+    document.getElementById('photo-remove').addEventListener('click', clearPhoto);
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (sending) return; // block double-submit
@@ -109,9 +191,19 @@
       failure.hidden = true;
 
       const rating = selectedRating();
+      const phoneMsg = phoneProblem(phoneInput.value);
+
       if (!rating) {
         ratingError.hidden = false;
-        document.getElementById('r1').focus();
+        ratingField.classList.add('invalid');
+      }
+      if (phoneMsg) {
+        phoneError.textContent = phoneMsg;
+        phoneError.hidden = false;
+        phoneInput.classList.add('invalid');
+      }
+      if (!rating || phoneMsg) {
+        (rating ? phoneInput : ratingField).scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
 
@@ -125,20 +217,20 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: nameInput.value,
+            phone: phoneInput.value,
             rating,
             comment: comment.value.slice(0, MAX),
+            photo: photoData,
           }),
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        // Success: clear the form, then show all reviews
+        // Success: clear the form
         form.reset();
         paintStars();
         updateCounter();
+        clearPhoto();
         success.hidden = false;
-        form.hidden = true;
-        after.hidden = false;
-        reviews.load();
       } catch (err) {
         // Failure: keep everything the customer typed
         failure.hidden = false;

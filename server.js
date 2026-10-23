@@ -3,11 +3,33 @@ const express = require('express');
 const { pool, init } = require('./db');
 
 const app = express();
-app.use(express.json({ limit: '10kb' }));
+// Photos arrive as base64 inside JSON, so allow a few MB.
+app.use(express.json({ limit: '4mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const NAME_MAX = 50;
 const COMMENT_MAX = 500;
+const PHONE_MAX = 20;
+const PHOTO_MAX_BYTES = 2 * 1024 * 1024;
+const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+// Accepts "+972 50-123-4567", "(050) 123 4567", etc. 7–15 digits, optional leading +.
+function isValidPhone(phone) {
+  const compact = phone.replace(/[\s\-().]/g, '');
+  return /^\+?\d{7,15}$/.test(compact);
+}
+
+// Parses "data:image/jpeg;base64,...". Returns { buffer, type } or { error }.
+function parsePhoto(dataUrl) {
+  const match = /^data:(image\/[a-z]+);base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl);
+  if (!match || !PHOTO_TYPES.includes(match[1])) {
+    return { error: 'Photo must be a JPG, PNG or WebP image.' };
+  }
+  if (Buffer.byteLength(match[2], 'base64') > PHOTO_MAX_BYTES) {
+    return { error: 'Photo is too large (max 2 MB).' };
+  }
+  return { base64: match[2], type: match[1] };
+}
 
 // Validate and clean the request body. Returns { data } or { error }.
 function validateFeedback(body) {
@@ -21,13 +43,31 @@ function validateFeedback(body) {
     return { error: `Name can be at most ${NAME_MAX} characters.` };
   }
 
+  const phone = typeof body.phone === 'string' ? body.phone.trim() : '';
+  if (!phone) {
+    return { error: 'Phone number is required.' };
+  }
+  if (phone.length > PHONE_MAX || !isValidPhone(phone)) {
+    return { error: 'Please enter a valid phone number.' };
+  }
+
   const comment = typeof body.comment === 'string' ? body.comment.trim() : '';
   if (comment.length > COMMENT_MAX) {
     return { error: `Comment can be at most ${COMMENT_MAX} characters.` };
   }
 
-  return { data: { name: name || null, rating, comment: comment || null } };
+  let photo = null;
+  if (body.photo) {
+    if (typeof body.photo !== 'string') return { error: 'Invalid photo.' };
+    const parsed = parsePhoto(body.photo);
+    if (parsed.error) return { error: parsed.error };
+    photo = parsed;
+  }
+
+  return { data: { name: name || null, phone, rating, comment: comment || null, photo } };
 }
+
+const LIST_COLUMNS = 'id, name, phone, rating, comment, created_at, (photo IS NOT NULL) AS has_photo';
 
 // Create feedback
 app.post('/feedback', async (req, res) => {
@@ -36,10 +76,10 @@ app.post('/feedback', async (req, res) => {
 
   try {
     const { rows } = await pool.query(
-      `INSERT INTO feedback (name, rating, comment)
-       VALUES ($1, $2, $3)
-       RETURNING id, name, rating, comment, created_at`,
-      [data.name, data.rating, data.comment]
+      `INSERT INTO feedback (name, phone, rating, comment, photo, photo_type)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING ${LIST_COLUMNS}`,
+      [data.name, data.phone, data.rating, data.comment, data.photo?.base64 ?? null, data.photo?.type ?? null]
     );
     res.status(201).json(rows[0]);
   } catch (err) {
@@ -62,12 +102,12 @@ app.get('/feedback', async (req, res) => {
   try {
     const list = ratingFilter
       ? await pool.query(
-          `SELECT id, name, rating, comment, created_at FROM feedback
+          `SELECT ${LIST_COLUMNS} FROM feedback
            WHERE rating = $1 ORDER BY created_at DESC, id DESC`,
           [ratingFilter]
         )
       : await pool.query(
-          `SELECT id, name, rating, comment, created_at FROM feedback
+          `SELECT ${LIST_COLUMNS} FROM feedback
            ORDER BY created_at DESC, id DESC`
         );
 
@@ -79,6 +119,23 @@ app.get('/feedback', async (req, res) => {
   } catch (err) {
     console.error('GET /feedback failed:', err);
     res.status(500).json({ error: 'Could not load feedback.' });
+  }
+});
+
+// Serve a review's photo
+app.get('/feedback/:id/photo', async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id < 1) return res.status(400).end();
+
+  try {
+    const { rows } = await pool.query('SELECT photo, photo_type FROM feedback WHERE id = $1', [id]);
+    if (!rows[0]?.photo) return res.status(404).end();
+    res.set('Content-Type', rows[0].photo_type || 'image/jpeg');
+    res.set('Cache-Control', 'private, no-cache');
+    res.send(Buffer.from(rows[0].photo, 'base64'));
+  } catch (err) {
+    console.error('GET /feedback/:id/photo failed:', err);
+    res.status(500).end();
   }
 });
 

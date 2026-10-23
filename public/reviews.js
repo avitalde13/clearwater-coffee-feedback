@@ -65,6 +65,14 @@ function mountReviews(root, { canDelete = false } = {}) {
     date.className = 'review-date';
     date.textContent = dateFmt.format(new Date(item.created_at));
     left.append(name, stars, date);
+
+    if (item.phone) {
+      const phone = document.createElement('a');
+      phone.className = 'review-phone';
+      phone.href = `tel:${item.phone.replace(/[^\d+]/g, '')}`;
+      phone.textContent = `📞 ${item.phone}`;
+      left.append(phone);
+    }
     top.append(left);
 
     if (canDelete) {
@@ -82,6 +90,20 @@ function mountReviews(root, { canDelete = false } = {}) {
       p.className = 'review-comment';
       p.textContent = item.comment;
       li.append(p);
+    }
+
+    if (item.has_photo) {
+      const link = document.createElement('a');
+      link.href = `/feedback/${item.id}/photo`;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      const img = document.createElement('img');
+      img.className = 'review-photo';
+      img.src = `/feedback/${item.id}/photo`;
+      img.alt = 'Photo from customer';
+      img.loading = 'lazy';
+      link.append(img);
+      li.append(link);
     }
     return li;
   }

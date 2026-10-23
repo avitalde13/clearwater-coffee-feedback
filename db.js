@@ -11,6 +11,9 @@ const SCHEMA = `
     comment    VARCHAR(500),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   );
+  ALTER TABLE feedback ADD COLUMN IF NOT EXISTS phone VARCHAR(20);
+  ALTER TABLE feedback ADD COLUMN IF NOT EXISTS photo TEXT; -- base64 image data
+  ALTER TABLE feedback ADD COLUMN IF NOT EXISTS photo_type VARCHAR(30);
 `;
 
 function createPool() {

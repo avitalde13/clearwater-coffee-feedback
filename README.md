@@ -2,10 +2,12 @@
 
 Customers leave a rating and comment from a QR code on the table; the owner reads everything on a hidden `/admin` page.
 
-- **Customer page:** `/`. Step 1: leave feedback. Step 2: after submitting, the page shows the average, total and all reviews (read-only, with the rating filter), plus a "Leave another review" button.
-- **Owner page:** `/admin`. The same reviews view with **Delete** buttons (no login yet, hidden link only)
+- **Customer page:** `/`. Rating (required), name (optional), phone (required), comment (optional, 500 chars), photo (optional). Customers never see other reviews.
+- **Owner page:** `/admin`. Average, total, rating filter, every review with phone and photo, and **Delete** (no login yet, hidden link only).
 
-The shared reviews view (summary, filter, list) lives in `public/reviews.js` and is used by both pages.
+The reviews view (summary, filter, list) lives in `public/reviews.js`.
+
+Photos are resized in the browser (max 1600px, JPEG) before upload and stored in Postgres as base64 (max 2 MB).
 
 ## Stack
 
@@ -33,14 +35,18 @@ Created automatically on startup:
 | `name`       | VARCHAR(50)   | null = "Anonymous"        |
 | `rating`     | INTEGER       | required, 1–5 (CHECK)     |
 | `comment`    | VARCHAR(500)  | optional                  |
+| `phone`      | VARCHAR(20)   | required by the API       |
+| `photo`      | TEXT          | optional, base64 image    |
+| `photo_type` | VARCHAR(30)   | e.g. `image/jpeg`         |
 | `created_at` | TIMESTAMPTZ   | default `NOW()`           |
 
 ## API
 
 | Method | Path              | Description |
 |--------|-------------------|-------------|
-| POST   | `/feedback`       | Body `{ name?, rating, comment? }`. Returns `201` with the new row, or `400` with `{ error }`. |
+| POST   | `/feedback`       | Body `{ name?, phone, rating, comment?, photo? }` (`photo` is a `data:image/...;base64,` URL). Returns `201` with the new row, or `400` with `{ error }`. |
 | GET    | `/feedback`       | Returns `{ items, stats: { average, count } }`, newest first. Optional `?rating=1..5` filters `items`. |
+| GET    | `/feedback/:id/photo` | The review's photo. |
 | DELETE | `/feedback/:id`   | Returns `204`, or `404` if not found. |
 
 **Filter decision:** `stats` (the average and total at the top of `/admin`) always cover **all** reviews, even when a rating filter is active. Filtering to "1 star" would otherwise always show "1.0 ★", which tells the owner nothing. The admin page shows "Showing X of Y reviews" instead.
