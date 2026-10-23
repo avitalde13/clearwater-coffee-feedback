@@ -118,7 +118,7 @@ body {
 .optional { font-weight: 400; color: var(--muted); font-size: 14px; }
 .required { color: var(--err-text); }
 
-input[type="text"], input[type="tel"], input[type="password"], textarea {
+input[type="text"], input[type="tel"], input[type="email"], input[type="password"], textarea {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
@@ -131,7 +131,7 @@ input[type="text"], input[type="tel"], input[type="password"], textarea {
   padding: 12px 14px;
   transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
-input[type="text"]:focus, input[type="tel"]:focus, input[type="password"]:focus, textarea:focus {
+input[type="text"]:focus, input[type="tel"]:focus, input[type="email"]:focus, input[type="password"]:focus, textarea:focus {
   outline: none;
   border-color: var(--brand-2);
   background: var(--card);

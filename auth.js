@@ -1,6 +1,7 @@
 // Admin authentication.
 //
-// - The owner logs in to /admin with a password.
+// - The owner logs in with their email + password. The email is the ADMIN_EMAIL environment
+//   variable (kept in Railway, never in the code).
 // - The first password is the ADMIN_CODE environment variable (set in Railway and sent to the owner).
 // - ADMIN_CODE is temporary: after logging in with it, the owner MUST choose a new password before
 //   seeing any data. The new password is stored hashed in the admin_auth table and replaces ADMIN_CODE.
@@ -13,6 +14,7 @@ const crypto = require('crypto');
 
 const ADMIN_CODE = process.env.ADMIN_CODE || '';
 const ADMIN_NAME = (process.env.ADMIN_NAME || '').trim(); // shown as "Hello <name>" on the dashboard
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
 const SESSION_COOKIE = 'admin_session';
 const SESSION_DAYS = 7;
 const PASSWORD_MIN = 8;
@@ -79,6 +81,7 @@ function setupAdminAuth(app, pool) {
   // Which credential is active right now?
   // The saved password wins, unless ADMIN_CODE was changed after it was saved (= a reset).
   function activeCredential(row) {
+    if (!ADMIN_EMAIL) return null; // no admin email configured = admin access switched off
     const savedStillValid = row.password_hash && (!ADMIN_CODE_FP || row.admin_code_fp === ADMIN_CODE_FP);
     if (savedStillValid) return { type: 'password', key: row.password_hash };
     if (ADMIN_CODE) return { type: 'code', key: `code:${ADMIN_CODE_FP}` };
@@ -153,15 +156,19 @@ function setupAdminAuth(app, pool) {
     if (loginLimiter.blocked(req.ip)) {
       return res.status(429).json({ error: 'Too many wrong attempts. Try again in 15 minutes.' });
     }
+    const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
     const password = typeof req.body?.password === 'string' ? req.body.password : '';
 
     try {
       const row = await getRow();
       const cred = activeCredential(row);
       if (!cred) return res.status(503).json({ error: 'Admin access is not set up yet.' });
-      if (!checkPassword(row, password)) {
+      // Check both, and give the same answer either way, so nobody can find out the admin email.
+      const emailOk = safeEqual(email, ADMIN_EMAIL);
+      const passwordOk = checkPassword(row, password);
+      if (!emailOk || !passwordOk) {
         loginLimiter.hit(req.ip);
-        return res.status(401).json({ error: 'Wrong password.' });
+        return res.status(401).json({ error: 'Wrong email or password.' });
       }
       loginLimiter.clear(req.ip);
       setSessionCookie(req, res, cred.key);

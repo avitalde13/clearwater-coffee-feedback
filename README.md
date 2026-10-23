@@ -11,10 +11,12 @@ The café's website: a landing page, the menu, a feedback form customers reach f
 
 ## Admin login
 
-`/admin` asks for the admin password.
+The owner logs in with **email + password**, on `/admin` or with **Owner login** on the home page.
+
+- **Email:** the `ADMIN_EMAIL` environment variable in Railway. Only that email can log in. If it's not set, admin access is switched off. A wrong email and a wrong password give the same message, so nobody can find out the admin email.
 
 - **First password:** the `ADMIN_CODE` environment variable in Railway. Send it to the owner privately. It's temporary: after logging in with it, the owner sees "Hello <name>, please press Change password to continue" and can't see any reviews until they choose their own password (enforced by the server too, which answers `403`).
-- **Name:** set `ADMIN_NAME` in Railway to greet the owner by name.
+- **Name:** set `ADMIN_NAME` in Railway to greet the owner by first name (optional).
 - **Change password:** after logging in, tap **Change password** (needs the current password). The new password is stored hashed (scrypt) in the `admin_auth` table and replaces `ADMIN_CODE`. Other devices are logged out.
 - **Forgot password:** set a **new** `ADMIN_CODE` in Railway and send it to the owner. A changed `ADMIN_CODE` overrides the saved password, so they can log in and choose a new one.
 - Logging in sets an HttpOnly cookie for 7 days. 5 wrong passwords from one IP blocks it for 15 minutes.
@@ -57,7 +59,7 @@ Created automatically on startup:
 |--------|-------------------|-------------|
 | POST   | `/api/feedback`   | Body `{ name?, phone, rating, comment?, photo? }` (`photo` is a `data:image/...;base64,` URL). Returns `201` with the new row, or `400` with `{ error }`. |
 | GET    | `/api/feedback/public` | Public list: `{ items: [{ id, name, comment, created_at, has_photo }] }`, newest 100. |
-| POST   | `/admin/login`    | Body `{ password }`. Sets the admin cookie. |
+| POST   | `/admin/login`    | Body `{ email, password }`. Sets the admin cookie. |
 | POST   | `/admin/password` (admin) | Body `{ currentPassword, newPassword }`. Changes the password. |
 | POST   | `/admin/logout`   | Clears the admin cookie. |
 | GET    | `/admin/session`  | `{ loggedIn, configured }`. |

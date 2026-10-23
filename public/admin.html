@@ -25,7 +25,9 @@
   <main class="container wide">
     <!-- Log in -->
     <form id="login" class="card login-card reveal" hidden novalidate>
-      <label class="label" for="password">Password</label>
+      <label class="label" for="email">Email</label>
+      <input type="email" id="email" autocomplete="username" inputmode="email" autocapitalize="off" spellcheck="false" placeholder="name@example.com">
+      <label class="label" for="password" style="margin-top:12px">Password</label>
       <input type="password" id="password" autocomplete="current-password" autocapitalize="off" spellcheck="false">
       <p id="login-error" class="field-error" hidden></p>
       <button class="btn" type="submit" id="login-btn" style="margin-top:16px">Log in</button>
@@ -129,7 +131,7 @@
       show('login');
       $('login-error').hidden = true;
       if (message) showError('login-error', message);
-      $('password').focus();
+      $('email').focus();
     }
 
     function showGate() {
@@ -180,10 +182,11 @@
     $('login').addEventListener('submit', (e) => {
       e.preventDefault();
       $('login-error').hidden = true;
+      if (!$('email').value.trim()) return showError('login-error', 'Enter your email.');
       if (!$('password').value) return showError('login-error', 'Enter your password.');
       busy('login-btn', async () => {
         try {
-          const body = await post('/admin/login', { password: $('password').value });
+          const body = await post('/admin/login', { email: $('email').value, password: $('password').value });
           $('password').value = '';
           greet(body.name);
           body.mustChangePassword ? showGate() : showDashboard();

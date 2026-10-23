@@ -61,7 +61,9 @@
     <form novalidate>
       <h2 id="login-title">Owner login</h2>
       <p class="help">For the café owner only.</p>
-      <label class="label" for="owner-password">Password</label>
+      <label class="label" for="owner-email">Email</label>
+      <input type="email" id="owner-email" autocomplete="username" inputmode="email" autocapitalize="off" spellcheck="false" placeholder="name@example.com">
+      <label class="label" for="owner-password" style="margin-top:12px">Password</label>
       <input type="password" id="owner-password" autocomplete="current-password" autocapitalize="off" spellcheck="false">
       <p class="field-error" hidden></p>
       <div class="dialog-actions">

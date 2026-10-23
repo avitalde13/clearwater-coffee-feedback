@@ -1,6 +1,6 @@
 // Shared bits for the website pages (landing page and menu):
 // - fade sections in as they scroll into view
-// - the "Owner login" dialog (password only), which sends the owner to /admin
+// - the "Owner login" dialog (email + password), which sends the owner to /admin
 
 document.documentElement.classList.add('js');
 
@@ -30,6 +30,7 @@ document.documentElement.classList.add('js');
   const dialog = document.getElementById('owner-login');
   if (!dialog) return;
   const form = dialog.querySelector('form');
+  const emailInput = dialog.querySelector('input[type="email"]');
   const input = dialog.querySelector('input[type="password"]');
   const error = dialog.querySelector('.field-error');
   const submit = dialog.querySelector('button[type="submit"]');
@@ -37,6 +38,7 @@ document.documentElement.classList.add('js');
   function open() {
     error.hidden = true;
     input.value = '';
+    emailInput.value = '';
     // Already logged in on this device? Go straight to the dashboard.
     fetch('/admin/session')
       .then((r) => r.json())
@@ -46,7 +48,7 @@ document.documentElement.classList.add('js');
       .catch(() => {});
     if (typeof dialog.showModal === 'function') dialog.showModal();
     else location.href = '/admin'; // very old browsers: use the admin page's own login
-    setTimeout(() => input.focus(), 50);
+    setTimeout(() => emailInput.focus(), 50);
   }
 
   document.querySelectorAll('[data-owner-login]').forEach((btn) => btn.addEventListener('click', open));
@@ -58,8 +60,8 @@ document.documentElement.classList.add('js');
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     error.hidden = true;
-    if (!input.value) {
-      error.textContent = 'Enter your password.';
+    if (!emailInput.value.trim() || !input.value) {
+      error.textContent = 'Enter your email and password.';
       error.hidden = false;
       return;
     }
@@ -68,7 +70,7 @@ document.documentElement.classList.add('js');
       const res = await fetch('/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: input.value }),
+        body: JSON.stringify({ email: emailInput.value, password: input.value }),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error || 'Something went wrong, please try again.');
