@@ -2,8 +2,8 @@
 //
 // - The owner logs in to /admin with a password.
 // - The first password is the ADMIN_CODE environment variable (set in Railway and sent to the owner).
-// - Once logged in, the owner can change the password from the dashboard. The new password is
-//   stored hashed in the admin_auth table and replaces ADMIN_CODE.
+// - ADMIN_CODE is temporary: after logging in with it, the owner MUST choose a new password before
+//   seeing any data. The new password is stored hashed in the admin_auth table and replaces ADMIN_CODE.
 // - Forgotten password: set a NEW ADMIN_CODE in Railway. A changed ADMIN_CODE overrides the saved
 //   password, so the owner can log in with the new code and pick a password again.
 // - Sessions are an HttpOnly cookie derived from the current password, so changing the password
@@ -12,6 +12,7 @@
 const crypto = require('crypto');
 
 const ADMIN_CODE = process.env.ADMIN_CODE || '';
+const ADMIN_NAME = (process.env.ADMIN_NAME || '').trim(); // shown as "Hello <name>" on the dashboard
 const SESSION_COOKIE = 'admin_session';
 const SESSION_DAYS = 7;
 const PASSWORD_MIN = 8;
@@ -104,27 +105,44 @@ function setupAdminAuth(app, pool) {
     });
   }
 
-  async function isAdmin(req) {
+  // Returns the active credential if this request has a valid session cookie, else null.
+  async function sessionCredential(req) {
     const cookie = readCookie(req, SESSION_COOKIE);
-    if (!cookie) return false;
+    if (!cookie) return null;
     const cred = activeCredential(await getRow());
-    return Boolean(cred) && safeEqual(cookie, sessionToken(cred.key));
+    return cred && safeEqual(cookie, sessionToken(cred.key)) ? cred : null;
   }
 
-  async function requireAdmin(req, res, next) {
-    try {
-      if (await isAdmin(req)) return next();
-      res.status(401).json({ error: 'Admin login required.' });
-    } catch (err) {
-      console.error('Admin check failed:', err);
-      res.status(500).json({ error: 'Something went wrong.' });
-    }
+  // Middleware. Logged in with the temporary ADMIN_CODE only counts when allowTemporary is set
+  // (the change-password route); everything else needs a real password first.
+  function guard(allowTemporary) {
+    return async (req, res, next) => {
+      try {
+        const cred = await sessionCredential(req);
+        if (!cred) return res.status(401).json({ error: 'Admin login required.' });
+        if (cred.type === 'code' && !allowTemporary) {
+          return res.status(403).json({ error: 'Please change your password to continue.', mustChangePassword: true });
+        }
+        next();
+      } catch (err) {
+        console.error('Admin check failed:', err);
+        res.status(500).json({ error: 'Something went wrong.' });
+      }
+    };
   }
+  const requireAdmin = guard(false);
+  const requireLogin = guard(true);
 
   app.get('/admin/session', async (req, res) => {
     try {
       const row = await getRow();
-      res.json({ loggedIn: await isAdmin(req), configured: Boolean(activeCredential(row)) });
+      const cred = await sessionCredential(req);
+      res.json({
+        loggedIn: Boolean(cred),
+        configured: Boolean(activeCredential(row)),
+        mustChangePassword: cred?.type === 'code',
+        name: cred ? ADMIN_NAME : '',
+      });
     } catch (err) {
       console.error('GET /admin/session failed:', err);
       res.status(500).json({ error: 'Something went wrong.' });
@@ -147,7 +165,7 @@ function setupAdminAuth(app, pool) {
       }
       loginLimiter.clear(req.ip);
       setSessionCookie(req, res, cred.key);
-      res.json({ ok: true });
+      res.json({ ok: true, mustChangePassword: cred.type === 'code', name: ADMIN_NAME });
     } catch (err) {
       console.error('POST /admin/login failed:', err);
       res.status(500).json({ error: 'Something went wrong, please try again.' });
@@ -160,7 +178,7 @@ function setupAdminAuth(app, pool) {
   });
 
   // Change password (logged in). Needs the current password too, in case a phone is left unlocked.
-  app.post('/admin/password', requireAdmin, async (req, res) => {
+  app.post('/admin/password', requireLogin, async (req, res) => {
     const current = typeof req.body?.currentPassword === 'string' ? req.body.currentPassword : '';
     const next = typeof req.body?.newPassword === 'string' ? req.body.newPassword : '';
 
@@ -175,6 +193,9 @@ function setupAdminAuth(app, pool) {
       const row = await getRow();
       if (!checkPassword(row, current)) {
         return res.status(400).json({ error: 'Your current password is wrong.' });
+      }
+      if (safeEqual(next, current)) {
+        return res.status(400).json({ error: 'Choose a new password that is different from the current one.' });
       }
       const passwordHash = hashPassword(next);
       await pool.query('UPDATE admin_auth SET password_hash = $1, admin_code_fp = $2 WHERE id = 1', [

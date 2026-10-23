@@ -11,36 +11,50 @@
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <main class="container">
-    <header class="header">
-      <img class="logo" src="/logo.svg" alt="">
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="logo-badge"><img src="/logo.svg" alt=""></div>
       <h1 class="wordmark">Clearwater <small>Coffee</small></h1>
-      <p>How was your visit today?</p>
-    </header>
+      <p class="tagline">How was your visit today?</p>
+    </div>
+    <svg class="waves" viewBox="0 0 1200 48" preserveAspectRatio="none" aria-hidden="true">
+      <path class="wave-back" d="M0 20 Q150 2 300 20 T600 20 T900 20 T1200 20 T1500 20 T1800 20 L1800 48 L0 48 Z"/>
+      <path class="wave-front" d="M0 28 Q150 10 300 28 T600 28 T900 28 T1200 28 T1500 28 T1800 28 L1800 48 L0 48 Z"/>
+    </svg>
+  </header>
 
-    <div id="success" class="alert ok" role="status" hidden>Thank you! Your feedback helps us get better ☕</div>
+  <main class="container">
+    <div id="success" class="thanks" role="status" hidden>
+      <svg class="check" viewBox="0 0 56 56" aria-hidden="true">
+        <circle cx="28" cy="28" r="25"/>
+        <path d="M17 29 l7 7 l15 -16"/>
+      </svg>
+      <strong>Thank you!</strong>
+      <span>Your feedback helps us get better ☕</span>
+    </div>
     <div id="failure" class="alert err" role="alert" hidden>Something went wrong, please try again</div>
 
-    <form id="form" class="card" novalidate>
-      <div class="field rating-field" id="rating-field">
-        <span class="rating-label" id="rating-label">Rate your visit <span class="req-badge">Required</span></span>
+    <form id="form" class="card reveal" novalidate>
+      <div class="field rating-field reveal" style="--i:1" id="rating-field">
+        <span class="rating-label" id="rating-label">Rate your visit</span>
         <fieldset class="stars" id="stars" aria-labelledby="rating-label" aria-required="true">
-          <input type="radio" name="rating" id="r1" value="1"><label for="r1" title="1 star">★</label>
-          <input type="radio" name="rating" id="r2" value="2"><label for="r2" title="2 stars">★</label>
-          <input type="radio" name="rating" id="r3" value="3"><label for="r3" title="3 stars">★</label>
-          <input type="radio" name="rating" id="r4" value="4"><label for="r4" title="4 stars">★</label>
-          <input type="radio" name="rating" id="r5" value="5"><label for="r5" title="5 stars">★</label>
+          <input type="radio" name="rating" id="r1" value="1"><label for="r1" style="--i:0" title="1 star">★</label>
+          <input type="radio" name="rating" id="r2" value="2"><label for="r2" style="--i:1" title="2 stars">★</label>
+          <input type="radio" name="rating" id="r3" value="3"><label for="r3" style="--i:2" title="3 stars">★</label>
+          <input type="radio" name="rating" id="r4" value="4"><label for="r4" style="--i:3" title="4 stars">★</label>
+          <input type="radio" name="rating" id="r5" value="5"><label for="r5" style="--i:4" title="5 stars">★</label>
         </fieldset>
+        <p class="rating-word" id="rating-word" aria-live="polite"></p>
         <p id="rating-error" class="field-error big" hidden>Please tap a star to rate your visit.</p>
       </div>
 
-      <div class="field">
+      <div class="field reveal" style="--i:2">
         <label class="label" for="name">Your name <span class="optional">(optional)</span></label>
         <input type="text" id="name" name="name" maxlength="50" autocomplete="name"
                placeholder="Leave blank to stay anonymous">
       </div>
 
-      <div class="field">
+      <div class="field reveal" style="--i:3">
         <label class="label" for="phone">Phone number <span class="required">*</span></label>
         <input type="tel" id="phone" name="phone" maxlength="20" autocomplete="tel" inputmode="tel"
                placeholder="050-123-4567" aria-describedby="phone-help">
@@ -48,14 +62,14 @@
         <p id="phone-error" class="field-error" hidden></p>
       </div>
 
-      <div class="field">
+      <div class="field reveal" style="--i:4">
         <label class="label" for="comment">Comment <span class="optional">(optional)</span></label>
         <textarea id="comment" name="comment" maxlength="500"
                   placeholder="The croissant was warm and flaky"></textarea>
         <div id="counter" class="counter" aria-live="polite">0 / 500</div>
       </div>
 
-      <div class="field">
+      <div class="field reveal" style="--i:5">
         <span class="label">Photo <span class="optional">(optional)</span></span>
         <label class="photo-pick" id="photo-pick" for="photo">
           <span aria-hidden="true">📷</span> Add a photo
@@ -68,10 +82,10 @@
         <p id="photo-error" class="field-error" hidden></p>
       </div>
 
-      <button id="submit" class="btn" type="submit">Send feedback</button>
+      <button id="submit" class="btn reveal" style="--i:6" type="submit">Send feedback</button>
     </form>
 
-    <section aria-labelledby="public-title">
+    <section class="reveal" style="--i:7" aria-labelledby="public-title">
       <h2 class="section-title" id="public-title">What our guests are saying</h2>
       <ul class="list public-list" id="public-list"></ul>
       <p class="empty" id="public-empty" hidden>No reviews yet. Be the first!</p>
@@ -107,16 +121,26 @@
       day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
     });
 
-    function renderPublic(item) {
+    function renderPublic(item, index) {
       const li = document.createElement('li');
       li.className = 'review';
+      li.style.setProperty('--i', Math.min(index, 8));
+      const who = document.createElement('div');
+      who.className = 'review-who';
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar' + (item.name ? '' : ' anon');
+      avatar.setAttribute('aria-hidden', 'true');
+      avatar.textContent = item.name ? item.name.trim().charAt(0).toUpperCase() : '?';
+      const meta = document.createElement('div');
       const name = document.createElement('div');
       name.className = 'review-name' + (item.name ? '' : ' anon');
       name.textContent = item.name || 'Anonymous';
       const date = document.createElement('div');
       date.className = 'review-date';
       date.textContent = dateFmt.format(new Date(item.created_at));
-      li.append(name, date);
+      meta.append(name, date);
+      who.append(avatar, meta);
+      li.append(who);
       if (item.comment) {
         const p = document.createElement('p');
         p.className = 'review-comment';
@@ -154,9 +178,16 @@
       return checked ? Number(checked.value) : 0;
     }
 
+    const RATING_WORDS = ['', 'Not good', 'Could be better', 'Okay', 'Great!', 'Amazing!'];
+    const ratingWord = document.getElementById('rating-word');
+
     function paintStars() {
       const r = selectedRating();
       starLabels.forEach((label, i) => label.classList.toggle('on', i < r));
+      ratingWord.textContent = RATING_WORDS[r];
+      ratingWord.classList.remove('show');
+      void ratingWord.offsetWidth; // restart the fade-in
+      ratingWord.classList.toggle('show', r > 0);
     }
 
     form.querySelectorAll('input[name="rating"]').forEach((radio) =>
@@ -251,11 +282,15 @@
 
       if (!rating) {
         ratingError.hidden = false;
+        ratingField.classList.remove('invalid');
+        void ratingField.offsetWidth; // replay the shake on every try
         ratingField.classList.add('invalid');
       }
       if (phoneMsg) {
         phoneError.textContent = phoneMsg;
         phoneError.hidden = false;
+        phoneInput.classList.remove('invalid');
+        void phoneInput.offsetWidth;
         phoneInput.classList.add('invalid');
       }
       if (!rating || phoneMsg) {
@@ -265,7 +300,7 @@
 
       sending = true;
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Sending…';
+      submitBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>Sending…';
 
       try {
         const res = await fetch('/feedback', {

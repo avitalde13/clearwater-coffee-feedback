@@ -1,5 +1,6 @@
 // Shared reviews view: summary (average + total), rating filter, and list.
-// Used by /admin. Talks to the admin-only API; calls onUnauthorized if the session is gone.
+// Used by /admin. Talks to the admin-only API; calls onUnauthorized if the session is gone
+// or the password still has to be changed.
 //
 //   const view = mountReviews(rootElement, { canDelete: true });
 //   view.load();   // fetch and render
@@ -46,14 +47,21 @@ function mountReviews(root, { canDelete = false, onUnauthorized = () => {} } = {
   }
 
   // Build each review with textContent so customer text can't inject HTML.
-  function renderItem(item) {
+  function renderItem(item, index) {
     const li = document.createElement('li');
     li.className = 'review';
+    li.style.setProperty('--i', Math.min(index, 8));
 
     const top = document.createElement('div');
     top.className = 'review-top';
 
     const left = document.createElement('div');
+    left.className = 'review-who';
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar' + (item.name ? '' : ' anon');
+    avatar.setAttribute('aria-hidden', 'true');
+    avatar.textContent = item.name ? item.name.trim().charAt(0).toUpperCase() : '?';
+    const meta = document.createElement('div');
     const name = document.createElement('div');
     name.className = 'review-name' + (item.name ? '' : ' anon');
     name.textContent = item.name || 'Anonymous';
@@ -64,14 +72,15 @@ function mountReviews(root, { canDelete = false, onUnauthorized = () => {} } = {
     const date = document.createElement('div');
     date.className = 'review-date';
     date.textContent = dateFmt.format(new Date(item.created_at));
-    left.append(name, stars, date);
+    meta.append(name, stars, date);
+    left.append(avatar, meta);
 
     if (item.phone) {
       const phone = document.createElement('a');
       phone.className = 'review-phone';
       phone.href = `tel:${item.phone.replace(/[^\d+]/g, '')}`;
       phone.textContent = `📞 ${item.phone}`;
-      left.append(phone);
+      meta.append(phone);
     }
     top.append(left);
 
@@ -112,7 +121,7 @@ function mountReviews(root, { canDelete = false, onUnauthorized = () => {} } = {
     try {
       const url = currentRating ? `/feedback?rating=${currentRating}` : '/feedback';
       const res = await fetch(url);
-      if (res.status === 401) return onUnauthorized();
+      if (res.status === 401 || res.status === 403) return onUnauthorized();
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const { items, stats } = await res.json();
       loadError.hidden = true;
@@ -140,7 +149,7 @@ function mountReviews(root, { canDelete = false, onUnauthorized = () => {} } = {
     btn.disabled = true;
     try {
       const res = await fetch(`/feedback/${item.id}`, { method: 'DELETE' });
-      if (res.status === 401) return onUnauthorized();
+      if (res.status === 401 || res.status === 403) return onUnauthorized();
       if (!res.ok && res.status !== 404) throw new Error(`HTTP ${res.status}`);
       await load();
     } catch (err) {

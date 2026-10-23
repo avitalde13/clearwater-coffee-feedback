@@ -9,7 +9,8 @@ Customers leave a rating and comment from a QR code on the table; the owner read
 
 `/admin` asks for the admin password.
 
-- **First password:** the `ADMIN_CODE` environment variable in Railway. Send it to the owner privately.
+- **First password:** the `ADMIN_CODE` environment variable in Railway. Send it to the owner privately. It's temporary: after logging in with it, the owner sees "Hello <name>, please press Change password to continue" and can't see any reviews until they choose their own password (enforced by the server too, which answers `403`).
+- **Name:** set `ADMIN_NAME` in Railway to greet the owner by name.
 - **Change password:** after logging in, tap **Change password** (needs the current password). The new password is stored hashed (scrypt) in the `admin_auth` table and replaces `ADMIN_CODE`. Other devices are logged out.
 - **Forgot password:** set a **new** `ADMIN_CODE` in Railway and send it to the owner. A changed `ADMIN_CODE` overrides the saved password, so they can log in and choose a new one.
 - Logging in sets an HttpOnly cookie for 7 days. 5 wrong passwords from one IP blocks it for 15 minutes.

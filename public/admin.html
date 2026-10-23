@@ -10,50 +10,67 @@
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <main class="container wide">
-    <header class="header">
-      <img class="logo" src="/logo.svg" alt="">
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="logo-badge"><img src="/logo.svg" alt=""></div>
       <h1 class="wordmark">Clearwater <small>Coffee</small></h1>
-      <p>Owner dashboard</p>
-    </header>
+      <p class="tagline">Owner dashboard</p>
+    </div>
+    <svg class="waves" viewBox="0 0 1200 48" preserveAspectRatio="none" aria-hidden="true">
+      <path class="wave-back" d="M0 20 Q150 2 300 20 T600 20 T900 20 T1200 20 T1500 20 T1800 20 L1800 48 L0 48 Z"/>
+      <path class="wave-front" d="M0 28 Q150 10 300 28 T600 28 T900 28 T1200 28 T1500 28 T1800 28 L1800 48 L0 48 Z"/>
+    </svg>
+  </header>
 
+  <main class="container wide">
     <!-- Log in -->
-    <form id="login" class="card login-card" hidden novalidate>
-      <label class="label" for="password">Admin password</label>
+    <form id="login" class="card login-card reveal" hidden novalidate>
+      <label class="label" for="password">Password</label>
       <input type="password" id="password" autocomplete="current-password" autocapitalize="off" spellcheck="false">
       <p id="login-error" class="field-error" hidden></p>
       <button class="btn" type="submit" id="login-btn" style="margin-top:16px">Log in</button>
       <p class="help" style="margin-top:14px">Forgot your password? Contact the website administrator for a new one.</p>
     </form>
 
+    <!-- First login with the temporary password: must change it before anything else -->
+    <section id="gate" class="card login-card gate" hidden>
+      <div class="wave-hand" aria-hidden="true">👋</div>
+      <h2 id="gate-title">Hello!</h2>
+      <p>Please press <strong>Change password</strong> to continue.</p>
+      <button class="btn" type="button" id="gate-btn">Change password</button>
+    </section>
+
+    <!-- Change password (used by the first-login screen and the dashboard) -->
+    <form id="pw-form" class="card login-card reveal" style="margin-bottom:20px" hidden novalidate>
+      <h2 class="section-title" style="margin-top:0">Change password</h2>
+      <div class="field">
+        <label class="label" for="current-password">Current password</label>
+        <input type="password" id="current-password" autocomplete="current-password">
+      </div>
+      <div class="field">
+        <label class="label" for="new-password">New password</label>
+        <input type="password" id="new-password" autocomplete="new-password">
+        <p class="help" style="text-align:left">At least 8 characters.</p>
+      </div>
+      <div class="field">
+        <label class="label" for="confirm-password">Repeat new password</label>
+        <input type="password" id="confirm-password" autocomplete="new-password">
+      </div>
+      <p id="pw-error" class="field-error" hidden></p>
+      <button class="btn" type="submit" id="pw-btn">Save new password</button>
+      <button class="link-btn" type="button" id="pw-cancel" style="margin-top:10px">Cancel</button>
+    </form>
+
     <!-- Dashboard -->
     <section id="dashboard" hidden>
-      <div class="toolbar">
-        <button class="link-btn" id="toggle-pw">Change password</button>
-        <button class="link-btn" id="logout">Log out</button>
+      <div class="toolbar reveal">
+        <span class="hello" id="hello">Hello!</span>
+        <span class="actions">
+          <button class="link-btn" id="toggle-pw">Change password</button>
+          <button class="link-btn" id="logout">Log out</button>
+        </span>
       </div>
-
       <div id="pw-saved" class="alert ok" role="status" hidden>Password changed. Use your new password next time.</div>
-
-      <form id="pw-form" class="card login-card" style="margin-bottom:20px; text-align:left" hidden novalidate>
-        <h2 class="section-title" style="margin-top:0">Change password</h2>
-        <div class="field">
-          <label class="label" for="current-password">Current password</label>
-          <input type="password" id="current-password" autocomplete="current-password">
-        </div>
-        <div class="field">
-          <label class="label" for="new-password">New password</label>
-          <input type="password" id="new-password" autocomplete="new-password">
-          <p class="help">At least 8 characters.</p>
-        </div>
-        <div class="field">
-          <label class="label" for="confirm-password">Repeat new password</label>
-          <input type="password" id="confirm-password" autocomplete="new-password">
-        </div>
-        <p id="pw-error" class="field-error" hidden></p>
-        <button class="btn" type="submit" id="pw-btn">Save new password</button>
-      </form>
-
       <div id="reviews"></div>
     </section>
   </main>
@@ -61,6 +78,8 @@
   <script src="/reviews.js"></script>
   <script>
     const $ = (id) => document.getElementById(id);
+    let adminName = '';
+    let firstLogin = false; // true while the temporary password must be changed
 
     function showError(id, message) {
       $(id).textContent = message;
@@ -80,7 +99,7 @@
         throw new Error('Something went wrong, please try again.');
       }
       const body = await res.json().catch(() => ({}));
-      if (res.status === 401 && url !== '/admin/login') showLogin();
+      if (res.status === 401 && url !== '/admin/login') refresh();
       if (!res.ok) throw new Error(body.error || 'Something went wrong, please try again.');
       return body;
     }
@@ -92,20 +111,69 @@
       try { await fn(); } finally { btn.disabled = false; }
     }
 
-    const reviews = mountReviews($('reviews'), { canDelete: true, onUnauthorized: showLogin });
+    const reviews = mountReviews($('reviews'), { canDelete: true, onUnauthorized: () => refresh() });
+
+    // Show exactly one screen.
+    function show(view) {
+      ['login', 'gate', 'pw-form', 'dashboard'].forEach((id) => ($(id).hidden = id !== view));
+    }
+
+    function greet(name) {
+      adminName = name || '';
+      const text = adminName ? `Hello ${adminName}` : 'Hello!';
+      $('gate-title').textContent = text;
+      $('hello').textContent = adminName ? `Hello, ${adminName} 👋` : 'Hello 👋';
+    }
 
     function showLogin(message) {
-      $('dashboard').hidden = true;
-      $('login').hidden = false;
+      show('login');
       $('login-error').hidden = true;
-      if (typeof message === 'string') showError('login-error', message);
+      if (message) showError('login-error', message);
       $('password').focus();
     }
 
+    function showGate() {
+      firstLogin = true;
+      show('gate');
+    }
+
     function showDashboard() {
-      $('login').hidden = true;
-      $('dashboard').hidden = false;
+      firstLogin = false;
+      show('dashboard');
       reviews.load();
+    }
+
+    function openPasswordForm() {
+      ['current-password', 'new-password', 'confirm-password'].forEach((id) => ($(id).value = ''));
+      $('pw-error').hidden = true;
+      $('pw-saved').hidden = true;
+      if (firstLogin) {
+        show('pw-form');
+      } else {
+        // On the dashboard, show the form above the reviews.
+        $('pw-form').hidden = false;
+        $('dashboard').prepend($('pw-form'));
+      }
+      $('current-password').focus();
+    }
+
+    function closePasswordForm() {
+      $('pw-form').hidden = true;
+      document.querySelector('main').append($('pw-form'));
+      if (firstLogin) show('gate');
+    }
+
+    // Ask the server where we are and show the right screen.
+    async function refresh(message) {
+      try {
+        const s = await (await fetch('/admin/session')).json();
+        greet(s.name);
+        if (!s.loggedIn) return showLogin(message || (s.configured ? '' : 'Admin access is not set up yet.'));
+        if (s.mustChangePassword) return showGate();
+        showDashboard();
+      } catch (err) {
+        showLogin('Something went wrong, please try again.');
+      }
     }
 
     // ----- Log in -----
@@ -115,9 +183,10 @@
       if (!$('password').value) return showError('login-error', 'Enter your password.');
       busy('login-btn', async () => {
         try {
-          await post('/admin/login', { password: $('password').value });
+          const body = await post('/admin/login', { password: $('password').value });
           $('password').value = '';
-          showDashboard();
+          greet(body.name);
+          body.mustChangePassword ? showGate() : showDashboard();
         } catch (err) {
           showError('login-error', err.message);
         }
@@ -125,12 +194,9 @@
     });
 
     // ----- Change password -----
-    $('toggle-pw').addEventListener('click', () => {
-      $('pw-form').hidden = !$('pw-form').hidden;
-      $('pw-saved').hidden = true;
-      $('pw-error').hidden = true;
-      if (!$('pw-form').hidden) $('current-password').focus();
-    });
+    $('gate-btn').addEventListener('click', openPasswordForm);
+    $('toggle-pw').addEventListener('click', () => ($('pw-form').hidden ? openPasswordForm() : closePasswordForm()));
+    $('pw-cancel').addEventListener('click', closePasswordForm);
 
     $('pw-form').addEventListener('submit', (e) => {
       e.preventDefault();
@@ -143,8 +209,8 @@
       busy('pw-btn', async () => {
         try {
           await post('/admin/password', { currentPassword: current, newPassword: next });
-          ['current-password', 'new-password', 'confirm-password'].forEach((id) => ($(id).value = ''));
-          $('pw-form').hidden = true;
+          closePasswordForm();
+          showDashboard();
           $('pw-saved').hidden = false;
         } catch (err) {
           showError('pw-error', err.message);
@@ -158,14 +224,7 @@
       showLogin();
     });
 
-    // On load: already logged in on this device?
-    fetch('/admin/session')
-      .then((r) => r.json())
-      .then(({ loggedIn, configured }) => {
-        if (loggedIn) return showDashboard();
-        showLogin(configured ? undefined : 'Admin access is not set up yet.');
-      })
-      .catch(() => showLogin('Something went wrong, please try again.'));
+    refresh();
   </script>
 </body>
 </html>
