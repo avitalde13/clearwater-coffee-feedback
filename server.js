@@ -1,7 +1,7 @@
 const path = require('path');
-const crypto = require('crypto');
 const express = require('express');
 const { pool, init } = require('./db');
+const { setupAdminAuth } = require('./auth');
 
 const app = express();
 app.set('trust proxy', 1); // Railway sits behind a proxy: needed for req.ip and req.secure
@@ -9,94 +9,8 @@ app.set('trust proxy', 1); // Railway sits behind a proxy: needed for req.ip and
 app.use(express.json({ limit: '4mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ---------- Admin access ----------
-// The owner unlocks /admin with a code set in the ADMIN_CODE environment variable.
-// If ADMIN_CODE is not set, admin access is switched off entirely.
-const ADMIN_CODE = process.env.ADMIN_CODE || '';
-const SESSION_COOKIE = 'admin_session';
-const SESSION_DAYS = 7;
-
-function sha256(text) {
-  return crypto.createHash('sha256').update(text).digest();
-}
-
-// The session token is derived from the code, so changing ADMIN_CODE logs everyone out.
-function sessionToken() {
-  return crypto.createHmac('sha256', ADMIN_CODE).update('admin-session-v1').digest('hex');
-}
-
-function readCookie(req, name) {
-  const header = req.headers.cookie || '';
-  for (const part of header.split(';')) {
-    const [key, ...rest] = part.trim().split('=');
-    if (key === name) return decodeURIComponent(rest.join('='));
-  }
-  return null;
-}
-
-function isAdmin(req) {
-  if (!ADMIN_CODE) return false;
-  const cookie = readCookie(req, SESSION_COOKIE);
-  if (!cookie) return false;
-  return crypto.timingSafeEqual(sha256(cookie), sha256(sessionToken()));
-}
-
-function requireAdmin(req, res, next) {
-  if (isAdmin(req)) return next();
-  res.status(401).json({ error: 'Admin code required.' });
-}
-
-// Simple brute-force guard: max 5 wrong codes per IP per 15 minutes.
-const failedLogins = new Map(); // ip -> { count, resetAt }
-function tooManyAttempts(ip) {
-  const entry = failedLogins.get(ip);
-  if (!entry || entry.resetAt < Date.now()) return false;
-  return entry.count >= 5;
-}
-function recordFailure(ip) {
-  const now = Date.now();
-  const entry = failedLogins.get(ip);
-  if (!entry || entry.resetAt < now) {
-    failedLogins.set(ip, { count: 1, resetAt: now + 15 * 60 * 1000 });
-  } else {
-    entry.count += 1;
-  }
-}
-
-app.post('/admin/login', (req, res) => {
-  if (!ADMIN_CODE) {
-    return res.status(503).json({ error: 'Admin access is not set up yet (ADMIN_CODE is missing).' });
-  }
-  if (tooManyAttempts(req.ip)) {
-    return res.status(429).json({ error: 'Too many wrong attempts. Try again in 15 minutes.' });
-  }
-
-  const code = typeof req.body?.code === 'string' ? req.body.code : '';
-  const ok = crypto.timingSafeEqual(sha256(code), sha256(ADMIN_CODE));
-  if (!ok) {
-    recordFailure(req.ip);
-    return res.status(401).json({ error: 'Wrong code.' });
-  }
-
-  failedLogins.delete(req.ip);
-  res.cookie(SESSION_COOKIE, sessionToken(), {
-    httpOnly: true,
-    secure: req.secure,
-    sameSite: 'strict',
-    maxAge: SESSION_DAYS * 24 * 60 * 60 * 1000,
-    path: '/',
-  });
-  res.json({ ok: true });
-});
-
-app.post('/admin/logout', (req, res) => {
-  res.clearCookie(SESSION_COOKIE, { path: '/' });
-  res.json({ ok: true });
-});
-
-app.get('/admin/session', (req, res) => {
-  res.json({ loggedIn: isAdmin(req), configured: Boolean(ADMIN_CODE) });
-});
+// Admin login, logout and "set a new password" by email code. See auth.js.
+const { requireAdmin } = setupAdminAuth(app, pool);
 
 const NAME_MAX = 50;
 const COMMENT_MAX = 500;
@@ -264,7 +178,7 @@ app.delete('/feedback/:id', requireAdmin, async (req, res) => {
   }
 });
 
-// Owner page. The page itself is public; it asks for the admin code before showing any data.
+// Owner page. The page itself is public; it asks for the admin password before showing any data.
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });

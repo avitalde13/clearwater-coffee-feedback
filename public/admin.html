@@ -17,16 +17,54 @@
       <p>Owner dashboard</p>
     </header>
 
-    <!-- Step 1: enter the admin code -->
+    <!-- Log in -->
     <form id="login" class="card login-card" hidden novalidate>
-      <label class="label" for="code">Admin code</label>
-      <input type="password" id="code" class="code-input" autocomplete="current-password" required>
+      <label class="label" for="password">Admin password</label>
+      <input type="password" id="password" autocomplete="current-password">
       <p id="login-error" class="field-error" hidden></p>
-      <button class="btn" type="submit" id="login-btn" style="margin-top:16px">Unlock</button>
+      <button class="btn" type="submit" id="login-btn" style="margin-top:16px">Log in</button>
+      <button class="link-btn" type="button" id="to-reset" style="margin-top:12px">Forgot password? Set a new one</button>
     </form>
 
-    <!-- Step 2: dashboard -->
+    <!-- Set a new password, step 1: email -->
+    <form id="reset1" class="card login-card" hidden novalidate>
+      <h2 class="section-title" style="margin-top:0">Set a new password</h2>
+      <p class="help" style="margin:0 0 14px">We'll email a 6-digit code to the admin's email address.</p>
+      <label class="label" for="email">Admin email</label>
+      <input type="text" id="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false"
+             placeholder="name@example.com">
+      <p id="reset1-error" class="field-error" hidden></p>
+      <button class="btn" type="submit" id="reset1-btn" style="margin-top:16px">Send code</button>
+      <button class="link-btn back" type="button" style="margin-top:12px">Back to log in</button>
+    </form>
+
+    <!-- Set a new password, step 2: code + new password -->
+    <form id="reset2" class="card login-card" hidden novalidate>
+      <h2 class="section-title" style="margin-top:0">Check your email</h2>
+      <p class="help" id="reset2-info" style="margin:0 0 14px"></p>
+      <div class="field">
+        <label class="label" for="otp">Verification code</label>
+        <input type="text" id="otp" class="code-input" inputmode="numeric" autocomplete="one-time-code"
+               maxlength="6" pattern="[0-9]*" placeholder="••••••">
+      </div>
+      <div class="field">
+        <label class="label" for="new-password">New password</label>
+        <input type="password" id="new-password" autocomplete="new-password" minlength="8">
+        <p class="help">At least 8 characters.</p>
+      </div>
+      <div class="field">
+        <label class="label" for="confirm-password">Repeat new password</label>
+        <input type="password" id="confirm-password" autocomplete="new-password">
+      </div>
+      <p id="reset2-error" class="field-error" hidden></p>
+      <button class="btn" type="submit" id="reset2-btn">Save new password</button>
+      <button class="link-btn" type="button" id="resend" style="margin-top:12px">Didn't get it? Send a new code</button>
+      <button class="link-btn back" type="button">Back to log in</button>
+    </form>
+
+    <!-- Dashboard -->
     <section id="dashboard" hidden>
+      <div id="saved" class="alert ok" role="status" hidden>New password saved. You're logged in.</div>
       <div class="toolbar"><button class="link-btn" id="logout">Log out</button></div>
       <div id="reviews"></div>
     </section>
@@ -34,75 +72,139 @@
 
   <script src="/reviews.js"></script>
   <script>
-    const loginForm = document.getElementById('login');
-    const codeInput = document.getElementById('code');
-    const loginError = document.getElementById('login-error');
-    const loginBtn = document.getElementById('login-btn');
-    const dashboard = document.getElementById('dashboard');
+    const $ = (id) => document.getElementById(id);
+    const views = ['login', 'reset1', 'reset2', 'dashboard'];
+    let resetEmail = '';
 
-    const reviews = mountReviews(document.getElementById('reviews'), {
-      canDelete: true,
-      onUnauthorized: showLogin,
-    });
-
-    function showLogin(message) {
-      dashboard.hidden = true;
-      loginForm.hidden = false;
-      if (typeof message === 'string') {
-        loginError.textContent = message;
-        loginError.hidden = false;
-      }
-      codeInput.focus();
+    function show(view) {
+      views.forEach((v) => ($(v).hidden = v !== view));
+      document.querySelectorAll('.field-error').forEach((el) => (el.hidden = true));
+      const focus = { login: 'password', reset1: 'email', reset2: 'otp' }[view];
+      if (focus) $(focus).focus();
     }
 
+    function showError(id, message) {
+      $(id).textContent = message;
+      $(id).hidden = false;
+    }
+
+    // POST JSON, return the parsed body, throw a readable message on failure.
+    async function post(url, data) {
+      let res;
+      try {
+        res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+      } catch (err) {
+        throw new Error('Something went wrong, please try again.');
+      }
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || 'Something went wrong, please try again.');
+      return body;
+    }
+
+    // Disable a button while its request runs (no double submits).
+    async function busy(btnId, fn) {
+      const btn = $(btnId);
+      btn.disabled = true;
+      try { await fn(); } finally { btn.disabled = false; }
+    }
+
+    const reviews = mountReviews($('reviews'), { canDelete: true, onUnauthorized: () => show('login') });
+
     function showDashboard() {
-      loginForm.hidden = true;
-      dashboard.hidden = false;
+      show('dashboard');
       reviews.load();
     }
 
-    loginForm.addEventListener('submit', async (e) => {
+    // ----- Log in -----
+    $('login').addEventListener('submit', (e) => {
       e.preventDefault();
-      loginError.hidden = true;
-      if (!codeInput.value) {
-        loginError.textContent = 'Enter the admin code.';
-        loginError.hidden = false;
-        return;
-      }
-      loginBtn.disabled = true;
-      try {
-        const res = await fetch('/admin/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: codeInput.value }),
-        });
-        const body = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(body.error || 'Something went wrong, please try again.');
-        codeInput.value = '';
-        showDashboard();
-      } catch (err) {
-        loginError.textContent = err.message === 'Failed to fetch'
-          ? 'Something went wrong, please try again.'
-          : err.message;
-        loginError.hidden = false;
-      } finally {
-        loginBtn.disabled = false;
-      }
+      if (!$('password').value) return showError('login-error', 'Enter your password.');
+      busy('login-btn', async () => {
+        try {
+          await post('/admin/login', { password: $('password').value });
+          $('password').value = '';
+          $('saved').hidden = true;
+          showDashboard();
+        } catch (err) {
+          showError('login-error', err.message);
+        }
+      });
     });
 
-    document.getElementById('logout').addEventListener('click', async () => {
+    // ----- Set a new password -----
+    $('to-reset').addEventListener('click', () => show('reset1'));
+    document.querySelectorAll('.back').forEach((b) => b.addEventListener('click', () => show('login')));
+
+    async function requestCode() {
+      const body = await post('/admin/reset/request', { email: resetEmail });
+      $('reset2-info').textContent = body.message;
+    }
+
+    $('reset1').addEventListener('submit', (e) => {
+      e.preventDefault();
+      resetEmail = $('email').value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resetEmail)) return showError('reset1-error', 'Enter a valid email.');
+      busy('reset1-btn', async () => {
+        try {
+          await requestCode();
+          show('reset2');
+        } catch (err) {
+          showError('reset1-error', err.message);
+        }
+      });
+    });
+
+    $('resend').addEventListener('click', () =>
+      busy('resend', async () => {
+        try {
+          await requestCode();
+          showError('reset2-error', 'If a code was not sent in the last minute, a new one is on its way.');
+        } catch (err) {
+          showError('reset2-error', err.message);
+        }
+      })
+    );
+
+    $('otp').addEventListener('input', () => ($('otp').value = $('otp').value.replace(/\D/g, '').slice(0, 6)));
+
+    $('reset2').addEventListener('submit', (e) => {
+      e.preventDefault();
+      $('reset2-error').hidden = true;
+      const code = $('otp').value;
+      const pw = $('new-password').value;
+      if (code.length !== 6) return showError('reset2-error', 'Enter the 6-digit code from the email.');
+      if (pw.length < 8) return showError('reset2-error', 'Password must be at least 8 characters.');
+      if (pw !== $('confirm-password').value) return showError('reset2-error', "The two passwords don't match.");
+      busy('reset2-btn', async () => {
+        try {
+          await post('/admin/reset/confirm', { email: resetEmail, code, newPassword: pw });
+          ['otp', 'new-password', 'confirm-password'].forEach((id) => ($(id).value = ''));
+          showDashboard();
+          $('saved').hidden = false;
+        } catch (err) {
+          showError('reset2-error', err.message);
+        }
+      });
+    });
+
+    // ----- Log out -----
+    $('logout').addEventListener('click', async () => {
       await fetch('/admin/logout', { method: 'POST' }).catch(() => {});
-      showLogin();
+      show('login');
     });
 
-    // On load: already unlocked on this device?
+    // On load: already logged in on this device?
     fetch('/admin/session')
       .then((r) => r.json())
       .then(({ loggedIn, configured }) => {
-        if (!configured) return showLogin('Admin access is not set up yet (ADMIN_CODE is missing on the server).');
-        loggedIn ? showDashboard() : showLogin();
+        if (loggedIn) return showDashboard();
+        show(configured ? 'login' : 'reset1');
       })
-      .catch(() => showLogin('Something went wrong, please try again.'));
+      .catch(() => show('login'));
   </script>
 </body>
 </html>
