@@ -1,0 +1,5 @@
+print/
+*.private.txt
+.claude/
+.env.example
+node_modules/
