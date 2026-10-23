@@ -19,17 +19,18 @@ Customers leave a rating and comment from a QR code on the table; the owner read
 - 5 wrong passwords from one IP blocks that IP for 15 minutes.
 - The admin-only API (`GET /feedback`, `DELETE /feedback/:id`) returns `401` without the login cookie.
 
-### Email (Resend)
+### Email (Brevo)
 
-Emails go through [Resend](https://resend.com)'s HTTP API, because Railway blocks outgoing SMTP on most plans.
+Codes are emailed through [Brevo](https://brevo.com)'s HTTP API, because Railway blocks outgoing SMTP on most plans. Once one sender address is verified, Brevo can send to any recipient on the free plan, so the site owner's own Gmail can send codes to the admin.
 
-1. Sign up at resend.com **with the admin email** (owner@example.com). Resend's free test sender only delivers to the account owner's own email.
-2. Resend → **API Keys** → **Create API Key** (sending access) → copy it.
-3. Railway → web service → **Variables** → add `RESEND_API_KEY` with that key.
+1. Sign up at brevo.com (free).
+2. **Senders, domains and dedicated IPs → Senders → Add a sender**, using the address that should send the codes, then confirm it from that inbox.
+3. **SMTP and API → API keys → Generate a new API key** → copy it (starts with `xkeysib-`).
+4. Railway → web service → **Variables** → add `BREVO_API_KEY` (the key) and `MAIL_FROM_EMAIL` (the verified sender address).
 
-To send from your own address later, verify a domain in Resend and set `MAIL_FROM`, for example `Clearwater Coffee <hello@yourdomain.com>`.
+Resend also works (`RESEND_API_KEY`, optional `MAIL_FROM`), but without a verified domain it only delivers to the Resend account owner's own email.
 
-Locally, without `RESEND_API_KEY`, emails are printed to the server console instead.
+Locally, without a key, emails are printed to the server console instead.
 
 ## Stack
 
@@ -85,7 +86,7 @@ Created automatically on startup:
 2. On [railway.com](https://railway.com): **New Project → Deploy from GitHub repo** → pick the repo.
 3. In the same project: **+ New → Database → PostgreSQL**.
 4. Open the web service → **Variables** → add
-   `DATABASE_URL` = `${{Postgres.DATABASE_URL}}` and `RESEND_API_KEY` (see *Email* above)
+   `DATABASE_URL` = `${{Postgres.DATABASE_URL}}`, plus `BREVO_API_KEY` and `MAIL_FROM_EMAIL` (see *Email* above)
 5. Web service → **Settings → Networking → Generate Domain**.
 6. Open `https://<your-domain>/` on your phone, and `https://<your-domain>/admin` for the owner view. Turn the first URL into a QR code.
 
