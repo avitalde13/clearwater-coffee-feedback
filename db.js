@@ -15,7 +15,7 @@ const SCHEMA = `
   ALTER TABLE feedback ADD COLUMN IF NOT EXISTS photo TEXT; -- base64 image data
   ALTER TABLE feedback ADD COLUMN IF NOT EXISTS photo_type VARCHAR(30);
 
-  -- One row (id = 1): the admin password and the pending email verification code.
+  -- One row (id = 1): the admin password (code_* columns are left over from email codes, unused).
   CREATE TABLE IF NOT EXISTS admin_auth (
     id            INTEGER PRIMARY KEY,
     password_hash TEXT,
@@ -24,6 +24,8 @@ const SCHEMA = `
     code_attempts INTEGER NOT NULL DEFAULT 0,
     code_sent_at  BIGINT
   );
+  -- Fingerprint of ADMIN_CODE when the password was saved; a different ADMIN_CODE resets it.
+  ALTER TABLE admin_auth ADD COLUMN IF NOT EXISTS admin_code_fp TEXT;
 `;
 
 function createPool() {

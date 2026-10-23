@@ -205,5 +205,5 @@ input.invalid { border-color: var(--err-text); border-width: 2px; }
 /* Admin login */
 .login-card { max-width: 360px; margin: 0 auto; text-align: center; }
 .code-input { text-align: center; font-size: 22px !important; letter-spacing: 6px; }
-.toolbar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+.toolbar { display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 12px; }
 .link-btn { font: inherit; font-size: 14px; background: none; border: 0; color: var(--brand); cursor: pointer; padding: 4px; }

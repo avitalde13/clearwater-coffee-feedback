@@ -7,30 +7,13 @@ Customers leave a rating and comment from a QR code on the table; the owner read
 
 ## Admin login
 
-`/admin` asks for the admin password. Only **one email can be admin**: `ADMIN_EMAIL` (default `owner@example.com`).
+`/admin` asks for the admin password.
 
-**Set or change the password:** on `/admin`, tap **Forgot password? Set a new one** → enter the admin email → a 6-digit code is emailed → enter the code and a new password (8+ characters). That device is then logged in.
-
-- Any other email gets the same "if that email belongs to the admin…" reply, but no email is sent, so nobody can find out the admin address.
-- Codes expire after 10 minutes, allow 5 tries, and can be requested once a minute (max 5 requests per IP per hour).
-- Passwords are stored hashed (scrypt) in the `admin_auth` table.
-- Changing the password logs out every other device.
-- Before a password is set, the `ADMIN_CODE` env variable (if present) works as the password.
-- 5 wrong passwords from one IP blocks that IP for 15 minutes.
-- The admin-only API (`GET /feedback`, `DELETE /feedback/:id`) returns `401` without the login cookie.
-
-### Email (Brevo)
-
-Codes are emailed through [Brevo](https://brevo.com)'s HTTP API, because Railway blocks outgoing SMTP on most plans. Once one sender address is verified, Brevo can send to any recipient on the free plan, so the site owner's own Gmail can send codes to the admin.
-
-1. Sign up at brevo.com (free).
-2. **Senders, domains and dedicated IPs → Senders → Add a sender**, using the address that should send the codes, then confirm it from that inbox.
-3. **SMTP and API → API keys → Generate a new API key** → copy it (starts with `xkeysib-`).
-4. Railway → web service → **Variables** → add `BREVO_API_KEY` (the key) and `MAIL_FROM_EMAIL` (the verified sender address).
-
-Resend also works (`RESEND_API_KEY`, optional `MAIL_FROM`), but without a verified domain it only delivers to the Resend account owner's own email.
-
-Locally, without a key, emails are printed to the server console instead.
+- **First password:** the `ADMIN_CODE` environment variable in Railway. Send it to the owner privately.
+- **Change password:** after logging in, tap **Change password** (needs the current password). The new password is stored hashed (scrypt) in the `admin_auth` table and replaces `ADMIN_CODE`. Other devices are logged out.
+- **Forgot password:** set a **new** `ADMIN_CODE` in Railway and send it to the owner. A changed `ADMIN_CODE` overrides the saved password, so they can log in and choose a new one.
+- Logging in sets an HttpOnly cookie for 7 days. 5 wrong passwords from one IP blocks it for 15 minutes.
+- The admin-only API (`GET /feedback`, `DELETE /feedback/:id`, `POST /admin/password`) returns `401` without the login cookie.
 
 ## Stack
 
@@ -70,8 +53,7 @@ Created automatically on startup:
 | POST   | `/feedback`       | Body `{ name?, phone, rating, comment?, photo? }` (`photo` is a `data:image/...;base64,` URL). Returns `201` with the new row, or `400` with `{ error }`. |
 | GET    | `/feedback/public` | Public list: `{ items: [{ id, name, comment, created_at, has_photo }] }`, newest 100. |
 | POST   | `/admin/login`    | Body `{ password }`. Sets the admin cookie. |
-| POST   | `/admin/reset/request` | Body `{ email }`. Emails a 6-digit code if it's the admin email. |
-| POST   | `/admin/reset/confirm` | Body `{ email, code, newPassword }`. Saves the password and logs in. |
+| POST   | `/admin/password` (admin) | Body `{ currentPassword, newPassword }`. Changes the password. |
 | POST   | `/admin/logout`   | Clears the admin cookie. |
 | GET    | `/admin/session`  | `{ loggedIn, configured }`. |
 | GET    | `/feedback` (admin) | Returns `{ items, stats: { average, count } }`, newest first. Optional `?rating=1..5` filters `items`. |
@@ -86,7 +68,7 @@ Created automatically on startup:
 2. On [railway.com](https://railway.com): **New Project → Deploy from GitHub repo** → pick the repo.
 3. In the same project: **+ New → Database → PostgreSQL**.
 4. Open the web service → **Variables** → add
-   `DATABASE_URL` = `${{Postgres.DATABASE_URL}}`, plus `BREVO_API_KEY` and `MAIL_FROM_EMAIL` (see *Email* above)
+   `DATABASE_URL` = `${{Postgres.DATABASE_URL}}`, plus `ADMIN_CODE` (the first admin password)
 5. Web service → **Settings → Networking → Generate Domain**.
 6. Open `https://<your-domain>/` on your phone, and `https://<your-domain>/admin` for the owner view. Turn the first URL into a QR code.
 
