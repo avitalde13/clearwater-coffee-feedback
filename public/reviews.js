@@ -1,10 +1,10 @@
 // Shared reviews view: summary (average + total), rating filter, and list.
-// Used by the customer page (read-only, after submitting) and /admin (with delete).
+// Used by /admin. Talks to the admin-only API; calls onUnauthorized if the session is gone.
 //
 //   const view = mountReviews(rootElement, { canDelete: true });
 //   view.load();   // fetch and render
 
-function mountReviews(root, { canDelete = false } = {}) {
+function mountReviews(root, { canDelete = false, onUnauthorized = () => {} } = {}) {
   root.innerHTML = `
     <section class="summary" aria-label="Summary">
       <div class="stat"><div class="k">Average rating</div><div class="v" data-avg>–</div></div>
@@ -112,6 +112,7 @@ function mountReviews(root, { canDelete = false } = {}) {
     try {
       const url = currentRating ? `/feedback?rating=${currentRating}` : '/feedback';
       const res = await fetch(url);
+      if (res.status === 401) return onUnauthorized();
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const { items, stats } = await res.json();
       loadError.hidden = true;
@@ -139,6 +140,7 @@ function mountReviews(root, { canDelete = false } = {}) {
     btn.disabled = true;
     try {
       const res = await fetch(`/feedback/${item.id}`, { method: 'DELETE' });
+      if (res.status === 401) return onUnauthorized();
       if (!res.ok && res.status !== 404) throw new Error(`HTTP ${res.status}`);
       await load();
     } catch (err) {

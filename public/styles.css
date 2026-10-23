@@ -8,6 +8,7 @@
   --brand-text: #ffffff;
   --brand-soft: #e3f2fb;
   --star: #29a9e1;
+  --brand-light: #29a9e1;
   --star-off: #c9d7e3;
   --ok-bg: #eaf3de;
   --ok-text: #27500a;
@@ -55,12 +56,12 @@ body {
 .container.wide { max-width: 760px; }
 
 .header { text-align: center; margin-bottom: 24px; }
-.logo {
-  width: 56px; height: 56px; border-radius: 50%;
-  background: var(--brand); color: var(--brand-text);
-  display: inline-flex; align-items: center; justify-content: center;
-  font-size: 28px;
+.logo { display: block; width: 52px; height: 65px; margin: 0 auto; }
+.wordmark {
+  margin: 10px 0 4px; font-size: 22px; font-weight: 700;
+  letter-spacing: 3px; text-transform: uppercase; color: var(--text);
 }
+.wordmark small { display: block; font-size: 13px; letter-spacing: 4px; color: var(--muted); font-weight: 600; }
 .header h1 { font-size: 22px; margin: 8px 0 2px; font-weight: 600; }
 .header p { margin: 0; color: var(--muted); }
 
@@ -76,7 +77,7 @@ body {
 .optional { font-weight: 400; color: var(--muted); }
 .required { color: var(--err-text); }
 
-input[type="text"], input[type="tel"], textarea {
+input[type="text"], input[type="tel"], input[type="password"], textarea {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
@@ -88,7 +89,7 @@ input[type="text"], input[type="tel"], textarea {
   border-radius: 8px;
   padding: 10px 12px;
 }
-input[type="text"]:focus, input[type="tel"]:focus, textarea:focus { outline: 2px solid var(--star); outline-offset: 1px; }
+input[type="text"]:focus, input[type="tel"]:focus, input[type="password"]:focus, textarea:focus { outline: 2px solid var(--star); outline-offset: 1px; }
 textarea { resize: vertical; min-height: 110px; }
 
 .stars { display: flex; justify-content: space-between; max-width: 280px; min-width: 0; gap: 0; border: 0; padding: 0; margin: 0; }
@@ -151,9 +152,7 @@ input.invalid { border-color: var(--err-text); border-width: 2px; }
   cursor: pointer;
 }
 .btn:disabled { opacity: 0.6; cursor: wait; }
-.btn.secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); margin-bottom: 24px; }
 
-.section-title { font-size: 18px; margin: 0 0 12px; }
 
 .alert { border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; text-align: center; }
 .alert.ok { background: var(--ok-bg); color: var(--ok-text); }
@@ -198,3 +197,13 @@ input.invalid { border-color: var(--err-text); border-width: 2px; }
 
 .empty { text-align: center; color: var(--muted); padding: 40px 16px; }
 .empty .big { font-size: 40px; }
+
+/* Public reviews on the customer page */
+.section-title { font-size: 18px; margin: 32px 0 12px; }
+.public-list .review-photo { max-height: 260px; width: 100%; object-fit: cover; }
+
+/* Admin login */
+.login-card { max-width: 360px; margin: 0 auto; text-align: center; }
+.code-input { text-align: center; font-size: 22px !important; letter-spacing: 6px; }
+.toolbar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+.link-btn { font: inherit; font-size: 14px; background: none; border: 0; color: var(--brand); cursor: pointer; padding: 4px; }

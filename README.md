@@ -1,9 +1,18 @@
-# Bean There Café – Customer Feedback
+# Clearwater Coffee – Customer Feedback
 
 Customers leave a rating and comment from a QR code on the table; the owner reads everything on a hidden `/admin` page.
 
-- **Customer page:** `/`. Rating (required), name (optional), phone (required), comment (optional, 500 chars), photo (optional). Customers never see other reviews.
-- **Owner page:** `/admin`. Average, total, rating filter, every review with phone and photo, and **Delete** (no login yet, hidden link only).
+- **Customer page:** `/`. Rating (required), name (optional), phone (required), comment (optional, 500 chars), photo (optional). Below the form, a public list of reviews showing **only name, date, comment and photo** (no phone, no rating).
+- **Owner page:** `/admin`. Locked by an admin code. After unlocking: average, total, rating filter, every review with phone and photo, and **Delete**.
+
+## Admin code
+
+Set the `ADMIN_CODE` environment variable (on Railway: web service → Variables). If it's not set, the admin page stays locked for everyone.
+
+- Unlocking sets an HttpOnly cookie for 7 days. **Log out** clears it.
+- Changing `ADMIN_CODE` logs out every device.
+- 5 wrong codes from one IP blocks that IP for 15 minutes.
+- The admin-only API (`GET /feedback`, `DELETE /feedback/:id`) returns `401` without the cookie.
 
 The reviews view (summary, filter, list) lives in `public/reviews.js`.
 
@@ -45,9 +54,13 @@ Created automatically on startup:
 | Method | Path              | Description |
 |--------|-------------------|-------------|
 | POST   | `/feedback`       | Body `{ name?, phone, rating, comment?, photo? }` (`photo` is a `data:image/...;base64,` URL). Returns `201` with the new row, or `400` with `{ error }`. |
-| GET    | `/feedback`       | Returns `{ items, stats: { average, count } }`, newest first. Optional `?rating=1..5` filters `items`. |
+| GET    | `/feedback/public` | Public list: `{ items: [{ id, name, comment, created_at, has_photo }] }`, newest 100. |
+| POST   | `/admin/login`    | Body `{ code }`. Sets the admin cookie. |
+| POST   | `/admin/logout`   | Clears the admin cookie. |
+| GET    | `/admin/session`  | `{ loggedIn, configured }`. |
+| GET    | `/feedback` (admin) | Returns `{ items, stats: { average, count } }`, newest first. Optional `?rating=1..5` filters `items`. |
 | GET    | `/feedback/:id/photo` | The review's photo. |
-| DELETE | `/feedback/:id`   | Returns `204`, or `404` if not found. |
+| DELETE | `/feedback/:id` (admin) | Returns `204`, or `404` if not found. |
 
 **Filter decision:** `stats` (the average and total at the top of `/admin`) always cover **all** reviews, even when a rating filter is active. Filtering to "1 star" would otherwise always show "1.0 ★", which tells the owner nothing. The admin page shows "Showing X of Y reviews" instead.
 
@@ -57,7 +70,7 @@ Created automatically on startup:
 2. On [railway.com](https://railway.com): **New Project → Deploy from GitHub repo** → pick the repo.
 3. In the same project: **+ New → Database → PostgreSQL**.
 4. Open the web service → **Variables** → add
-   `DATABASE_URL` = `${{Postgres.DATABASE_URL}}`
+   `DATABASE_URL` = `${{Postgres.DATABASE_URL}}` and `ADMIN_CODE` = a code only the owner knows
 5. Web service → **Settings → Networking → Generate Domain**.
 6. Open `https://<your-domain>/` on your phone, and `https://<your-domain>/admin` for the owner view. Turn the first URL into a QR code.
 

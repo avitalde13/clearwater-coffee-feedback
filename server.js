@@ -1,11 +1,102 @@
 const path = require('path');
+const crypto = require('crypto');
 const express = require('express');
 const { pool, init } = require('./db');
 
 const app = express();
+app.set('trust proxy', 1); // Railway sits behind a proxy: needed for req.ip and req.secure
 // Photos arrive as base64 inside JSON, so allow a few MB.
 app.use(express.json({ limit: '4mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ---------- Admin access ----------
+// The owner unlocks /admin with a code set in the ADMIN_CODE environment variable.
+// If ADMIN_CODE is not set, admin access is switched off entirely.
+const ADMIN_CODE = process.env.ADMIN_CODE || '';
+const SESSION_COOKIE = 'admin_session';
+const SESSION_DAYS = 7;
+
+function sha256(text) {
+  return crypto.createHash('sha256').update(text).digest();
+}
+
+// The session token is derived from the code, so changing ADMIN_CODE logs everyone out.
+function sessionToken() {
+  return crypto.createHmac('sha256', ADMIN_CODE).update('admin-session-v1').digest('hex');
+}
+
+function readCookie(req, name) {
+  const header = req.headers.cookie || '';
+  for (const part of header.split(';')) {
+    const [key, ...rest] = part.trim().split('=');
+    if (key === name) return decodeURIComponent(rest.join('='));
+  }
+  return null;
+}
+
+function isAdmin(req) {
+  if (!ADMIN_CODE) return false;
+  const cookie = readCookie(req, SESSION_COOKIE);
+  if (!cookie) return false;
+  return crypto.timingSafeEqual(sha256(cookie), sha256(sessionToken()));
+}
+
+function requireAdmin(req, res, next) {
+  if (isAdmin(req)) return next();
+  res.status(401).json({ error: 'Admin code required.' });
+}
+
+// Simple brute-force guard: max 5 wrong codes per IP per 15 minutes.
+const failedLogins = new Map(); // ip -> { count, resetAt }
+function tooManyAttempts(ip) {
+  const entry = failedLogins.get(ip);
+  if (!entry || entry.resetAt < Date.now()) return false;
+  return entry.count >= 5;
+}
+function recordFailure(ip) {
+  const now = Date.now();
+  const entry = failedLogins.get(ip);
+  if (!entry || entry.resetAt < now) {
+    failedLogins.set(ip, { count: 1, resetAt: now + 15 * 60 * 1000 });
+  } else {
+    entry.count += 1;
+  }
+}
+
+app.post('/admin/login', (req, res) => {
+  if (!ADMIN_CODE) {
+    return res.status(503).json({ error: 'Admin access is not set up yet (ADMIN_CODE is missing).' });
+  }
+  if (tooManyAttempts(req.ip)) {
+    return res.status(429).json({ error: 'Too many wrong attempts. Try again in 15 minutes.' });
+  }
+
+  const code = typeof req.body?.code === 'string' ? req.body.code : '';
+  const ok = crypto.timingSafeEqual(sha256(code), sha256(ADMIN_CODE));
+  if (!ok) {
+    recordFailure(req.ip);
+    return res.status(401).json({ error: 'Wrong code.' });
+  }
+
+  failedLogins.delete(req.ip);
+  res.cookie(SESSION_COOKIE, sessionToken(), {
+    httpOnly: true,
+    secure: req.secure,
+    sameSite: 'strict',
+    maxAge: SESSION_DAYS * 24 * 60 * 60 * 1000,
+    path: '/',
+  });
+  res.json({ ok: true });
+});
+
+app.post('/admin/logout', (req, res) => {
+  res.clearCookie(SESSION_COOKIE, { path: '/' });
+  res.json({ ok: true });
+});
+
+app.get('/admin/session', (req, res) => {
+  res.json({ loggedIn: isAdmin(req), configured: Boolean(ADMIN_CODE) });
+});
 
 const NAME_MAX = 50;
 const COMMENT_MAX = 500;
@@ -67,7 +158,10 @@ function validateFeedback(body) {
   return { data: { name: name || null, phone, rating, comment: comment || null, photo } };
 }
 
+// Admin sees everything; the public never sees phone numbers (or ratings, per the owner's request).
 const LIST_COLUMNS = 'id, name, phone, rating, comment, created_at, (photo IS NOT NULL) AS has_photo';
+const PUBLIC_COLUMNS = 'id, name, comment, created_at, (photo IS NOT NULL) AS has_photo';
+const PUBLIC_LIMIT = 100;
 
 // Create feedback
 app.post('/feedback', async (req, res) => {
@@ -78,7 +172,7 @@ app.post('/feedback', async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO feedback (name, phone, rating, comment, photo, photo_type)
        VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING ${LIST_COLUMNS}`,
+       RETURNING ${PUBLIC_COLUMNS}`,
       [data.name, data.phone, data.rating, data.comment, data.photo?.base64 ?? null, data.photo?.type ?? null]
     );
     res.status(201).json(rows[0]);
@@ -88,9 +182,23 @@ app.post('/feedback', async (req, res) => {
   }
 });
 
-// List feedback, newest first. Optional ?rating=1..5 filters the list.
+// Public list for the customer page: name, comment, date, photo. No phone numbers.
+app.get('/feedback/public', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT ${PUBLIC_COLUMNS} FROM feedback
+       ORDER BY created_at DESC, id DESC LIMIT ${PUBLIC_LIMIT}`
+    );
+    res.json({ items: rows });
+  } catch (err) {
+    console.error('GET /feedback/public failed:', err);
+    res.status(500).json({ error: 'Could not load feedback.' });
+  }
+});
+
+// Admin list, newest first. Optional ?rating=1..5 filters the list.
 // Stats (average + count) always cover ALL feedback, not just the filtered list.
-app.get('/feedback', async (req, res) => {
+app.get('/feedback', requireAdmin, async (req, res) => {
   let ratingFilter = null;
   if (req.query.rating !== undefined && req.query.rating !== '') {
     ratingFilter = Number(req.query.rating);
@@ -139,8 +247,8 @@ app.get('/feedback/:id/photo', async (req, res) => {
   }
 });
 
-// Delete feedback
-app.delete('/feedback/:id', async (req, res) => {
+// Delete feedback (admin only)
+app.delete('/feedback/:id', requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id) || id < 1) {
     return res.status(400).json({ error: 'Invalid id.' });
@@ -156,7 +264,7 @@ app.delete('/feedback/:id', async (req, res) => {
   }
 });
 
-// Owner page (hidden link, no login yet)
+// Owner page. The page itself is public; it asks for the admin code before showing any data.
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
@@ -165,7 +273,7 @@ const PORT = process.env.PORT || 3000;
 
 init()
   .then(() => {
-    app.listen(PORT, () => console.log(`Bean There feedback running on http://localhost:${PORT}`));
+    app.listen(PORT, () => console.log(`Clearwater Coffee feedback running on http://localhost:${PORT}`));
   })
   .catch((err) => {
     console.error('Database init failed:', err);

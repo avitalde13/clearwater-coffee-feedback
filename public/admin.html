@@ -2,25 +2,107 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1572b6">
   <meta name="robots" content="noindex">
-  <title>Bean There Café – Owner</title>
+  <title>Clearwater Coffee – Owner</title>
+  <link rel="icon" href="/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <main class="container wide">
     <header class="header">
-      <div class="logo" aria-hidden="true">☕</div>
-      <h1>Customer feedback</h1>
-      <p>Bean There Café · owner view</p>
+      <img class="logo" src="/logo.svg" alt="">
+      <h1 class="wordmark">Clearwater <small>Coffee</small></h1>
+      <p>Owner dashboard</p>
     </header>
 
-    <div id="reviews"></div>
+    <!-- Step 1: enter the admin code -->
+    <form id="login" class="card login-card" hidden novalidate>
+      <label class="label" for="code">Admin code</label>
+      <input type="password" id="code" class="code-input" autocomplete="current-password" required>
+      <p id="login-error" class="field-error" hidden></p>
+      <button class="btn" type="submit" id="login-btn" style="margin-top:16px">Unlock</button>
+    </form>
+
+    <!-- Step 2: dashboard -->
+    <section id="dashboard" hidden>
+      <div class="toolbar"><button class="link-btn" id="logout">Log out</button></div>
+      <div id="reviews"></div>
+    </section>
   </main>
 
   <script src="/reviews.js"></script>
   <script>
-    mountReviews(document.getElementById('reviews'), { canDelete: true }).load();
+    const loginForm = document.getElementById('login');
+    const codeInput = document.getElementById('code');
+    const loginError = document.getElementById('login-error');
+    const loginBtn = document.getElementById('login-btn');
+    const dashboard = document.getElementById('dashboard');
+
+    const reviews = mountReviews(document.getElementById('reviews'), {
+      canDelete: true,
+      onUnauthorized: showLogin,
+    });
+
+    function showLogin(message) {
+      dashboard.hidden = true;
+      loginForm.hidden = false;
+      if (typeof message === 'string') {
+        loginError.textContent = message;
+        loginError.hidden = false;
+      }
+      codeInput.focus();
+    }
+
+    function showDashboard() {
+      loginForm.hidden = true;
+      dashboard.hidden = false;
+      reviews.load();
+    }
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      loginError.hidden = true;
+      if (!codeInput.value) {
+        loginError.textContent = 'Enter the admin code.';
+        loginError.hidden = false;
+        return;
+      }
+      loginBtn.disabled = true;
+      try {
+        const res = await fetch('/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: codeInput.value }),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.error || 'Something went wrong, please try again.');
+        codeInput.value = '';
+        showDashboard();
+      } catch (err) {
+        loginError.textContent = err.message === 'Failed to fetch'
+          ? 'Something went wrong, please try again.'
+          : err.message;
+        loginError.hidden = false;
+      } finally {
+        loginBtn.disabled = false;
+      }
+    });
+
+    document.getElementById('logout').addEventListener('click', async () => {
+      await fetch('/admin/logout', { method: 'POST' }).catch(() => {});
+      showLogin();
+    });
+
+    // On load: already unlocked on this device?
+    fetch('/admin/session')
+      .then((r) => r.json())
+      .then(({ loggedIn, configured }) => {
+        if (!configured) return showLogin('Admin access is not set up yet (ADMIN_CODE is missing on the server).');
+        loggedIn ? showDashboard() : showLogin();
+      })
+      .catch(() => showLogin('Something went wrong, please try again.'));
   </script>
 </body>
 </html>

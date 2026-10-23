@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" role="img" aria-label="Clearwater Coffee">
+  <path d="M32 3 C32 3 9 31 9 49 a23 23 0 0 0 46 0 C55 31 32 3 32 3 Z" fill="#29a9e1"/>
+  <path d="M17 50 q7.5 -6 15 0 t15 0" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M21 60 q5.5 -4.5 11 0 t11 0" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+</svg>

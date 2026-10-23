@@ -5,14 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#1572b6">
   <meta name="format-detection" content="telephone=no">
-  <title>Bean There Café – Feedback</title>
+  <title>Clearwater Coffee – Feedback</title>
+  <link rel="icon" href="/logo.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/logo.svg">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <main class="container">
     <header class="header">
-      <div class="logo" aria-hidden="true">☕</div>
-      <h1>Bean There Café</h1>
+      <img class="logo" src="/logo.svg" alt="">
+      <h1 class="wordmark">Clearwater <small>Coffee</small></h1>
       <p>How was your visit today?</p>
     </header>
 
@@ -42,7 +44,7 @@
         <label class="label" for="phone">Phone number <span class="required">*</span></label>
         <input type="tel" id="phone" name="phone" maxlength="20" autocomplete="tel" inputmode="tel"
                placeholder="050-123-4567" aria-describedby="phone-help">
-        <p id="phone-help" class="help">So we can follow up with you. Only the café owner sees it.</p>
+        <p id="phone-help" class="help">So we can follow up with you. Only the café owner sees it, never the public.</p>
         <p id="phone-error" class="field-error" hidden></p>
       </div>
 
@@ -68,6 +70,13 @@
 
       <button id="submit" class="btn" type="submit">Send feedback</button>
     </form>
+
+    <section aria-labelledby="public-title">
+      <h2 class="section-title" id="public-title">What our guests are saying</h2>
+      <ul class="list public-list" id="public-list"></ul>
+      <p class="empty" id="public-empty" hidden>No reviews yet. Be the first!</p>
+      <p class="field-error" id="public-error" hidden>Couldn't load reviews right now.</p>
+    </section>
   </main>
 
   <script>
@@ -91,6 +100,53 @@
     const photoImg = document.getElementById('photo-img');
     const photoError = document.getElementById('photo-error');
     let photoData = null; // resized JPEG as a data URL
+
+    // ----- Public reviews: name, date, comment, photo only (no phone, no rating) -----
+    const publicList = document.getElementById('public-list');
+    const dateFmt = new Intl.DateTimeFormat(undefined, {
+      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+    });
+
+    function renderPublic(item) {
+      const li = document.createElement('li');
+      li.className = 'review';
+      const name = document.createElement('div');
+      name.className = 'review-name' + (item.name ? '' : ' anon');
+      name.textContent = item.name || 'Anonymous';
+      const date = document.createElement('div');
+      date.className = 'review-date';
+      date.textContent = dateFmt.format(new Date(item.created_at));
+      li.append(name, date);
+      if (item.comment) {
+        const p = document.createElement('p');
+        p.className = 'review-comment';
+        p.textContent = item.comment; // textContent: customer text can't inject HTML
+        li.append(p);
+      }
+      if (item.has_photo) {
+        const img = document.createElement('img');
+        img.className = 'review-photo';
+        img.src = `/feedback/${item.id}/photo`;
+        img.alt = `Photo from ${item.name || 'a guest'}`;
+        img.loading = 'lazy';
+        li.append(img);
+      }
+      return li;
+    }
+
+    async function loadPublic() {
+      try {
+        const res = await fetch('/feedback/public');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const { items } = await res.json();
+        publicList.replaceChildren(...items.map(renderPublic));
+        document.getElementById('public-empty').hidden = items.length > 0;
+        document.getElementById('public-error').hidden = true;
+      } catch (err) {
+        document.getElementById('public-error').hidden = false;
+      }
+    }
+    loadPublic();
     let sending = false;
 
     function selectedRating() {
@@ -231,6 +287,7 @@
         updateCounter();
         clearPhoto();
         success.hidden = false;
+        loadPublic();
       } catch (err) {
         // Failure: keep everything the customer typed
         failure.hidden = false;
