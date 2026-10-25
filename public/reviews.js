@@ -23,7 +23,7 @@ function mountReviews(root, { canDelete = false, onUnauthorized = () => {} } = {
     <p class="showing" data-showing></p>
     <ul class="list" data-list></ul>
     <div class="empty" data-empty hidden>
-      <div class="big" aria-hidden="true">☕</div>
+      <div class="big" aria-hidden="true"><img src="/logo.svg" alt="" width="48" height="48"></div>
       <p data-empty-text>No feedback yet</p>
     </div>
   `;
@@ -79,7 +79,7 @@ function mountReviews(root, { canDelete = false, onUnauthorized = () => {} } = {
       const phone = document.createElement('a');
       phone.className = 'review-phone';
       phone.href = `tel:${item.phone.replace(/[^\d+]/g, '')}`;
-      phone.textContent = `📞 ${item.phone}`;
+      phone.textContent = `Call ${item.phone}`;
       meta.append(phone);
     }
     top.append(left);

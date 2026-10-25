@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1572b6">
-  <meta name="description" content="Clearwater Coffee menu – coffee, breakfast, bakery and more.">
-  <title>Menu – Clearwater Coffee</title>
+  <meta name="theme-color" content="#4a3426">
+  <meta name="description" content="Nook menu – coffee, breakfast, bakery and more.">
+  <title>Menu – Nook</title>
   <link rel="icon" href="/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css">
 </head>
@@ -14,7 +14,7 @@
     <nav class="topnav" aria-label="Main">
       <a class="brand" href="/">
         <span class="brand-badge"><img src="/logo.svg" alt=""></span>
-        <span class="brand-name">Clearwater<small>Coffee</small></span>
+        <span class="brand-name"><span class="nook" role="img" aria-label="Nook">N<i class="o"></i><i class="o"></i>K</span><small>coffee house</small></span>
       </a>
       <span class="navlinks">
         <a href="/menu" aria-current="page">Menu</a>
@@ -54,7 +54,7 @@
       <a href="/feedback">Leave feedback</a>
       <button type="button" data-owner-login>Owner login</button>
     </nav>
-    <div>© <span id="year"></span> Clearwater Coffee</div>
+    <div>© <span id="year"></span> Nook Coffee House</div>
   </footer>
 
   <dialog class="login-dialog" id="owner-login" aria-labelledby="login-title">
@@ -75,76 +75,76 @@
 
   <script>
     // The whole menu lives here. To change a price or add a dish, edit this list.
-    // tags: 'V' vegetarian, 'VG' vegan, 'GF' gluten-free, 'NEW'
+    // img: photo in /img (see /img/CREDITS.md). tags: 'V' vegetarian, 'VG' vegan, 'GF' gluten-free, 'NEW'
     const MENU = [
       {
-        id: 'coffee', title: 'Coffee', emoji: '☕', intro: 'House espresso blend, or ask for today’s single origin.',
+        id: 'coffee', title: 'Coffee', intro: 'House espresso blend, or ask for today’s single origin.',
         items: [
-          { name: 'Espresso', price: 9, desc: 'Short, rich and sweet.', emoji: '☕', tags: ['VG', 'GF'] },
-          { name: 'Double espresso', price: 12, desc: 'Twice the good stuff.', emoji: '☕', tags: ['VG', 'GF'] },
-          { name: 'Americano', price: 12, desc: 'Espresso with hot water.', emoji: '☕', tags: ['VG', 'GF'] },
-          { name: 'Cortado', price: 13, desc: 'Espresso cut with a little warm milk.', emoji: '🥛', tags: ['V', 'GF'] },
-          { name: 'Cappuccino', price: 15, desc: 'Classic foam, a dusting of cocoa.', emoji: '☕', tags: ['V', 'GF'] },
-          { name: 'Flat white', price: 16, desc: 'Double ristretto, silky steamed milk.', emoji: '☕', tags: ['V', 'GF'] },
-          { name: 'Latte', price: 16, desc: 'Smooth and milky. Add vanilla or caramel +₪3.', emoji: '🥛', tags: ['V', 'GF'] },
-          { name: 'Mocha', price: 18, desc: 'Espresso, dark chocolate, steamed milk.', emoji: '🍫', tags: ['V', 'GF'] },
-          { name: 'Pour-over (V60)', price: 18, desc: 'Hand-brewed single origin, clean and bright.', emoji: '🫖', tags: ['VG', 'GF'] },
+          { name: 'Espresso', price: 9, desc: 'Short, rich and sweet.', img: 'espresso', tags: ['VG', 'GF'] },
+          { name: 'Double espresso', price: 12, desc: 'Twice the good stuff.', img: 'double-espresso', tags: ['VG', 'GF'] },
+          { name: 'Americano', price: 12, desc: 'Espresso with hot water.', img: 'americano', tags: ['VG', 'GF'] },
+          { name: 'Cortado', price: 13, desc: 'Espresso cut with a little warm milk.', img: 'cortado', tags: ['V', 'GF'] },
+          { name: 'Cappuccino', price: 15, desc: 'Classic foam, a dusting of cocoa.', img: 'cappuccino', tags: ['V', 'GF'] },
+          { name: 'Flat white', price: 16, desc: 'Double ristretto, silky steamed milk.', img: 'flat-white', tags: ['V', 'GF'] },
+          { name: 'Latte', price: 16, desc: 'Smooth and milky. Add vanilla or caramel +₪3.', img: 'latte', tags: ['V', 'GF'] },
+          { name: 'Mocha', price: 18, desc: 'Espresso, dark chocolate, steamed milk.', img: 'mocha', tags: ['V', 'GF'] },
+          { name: 'Pour-over (V60)', price: 18, desc: 'Hand-brewed single origin, clean and bright.', img: 'pour-over', tags: ['VG', 'GF'] },
         ],
       },
       {
-        id: 'cold', title: 'Cold drinks', emoji: '🧊', intro: 'For hot days and long afternoons.',
+        id: 'cold', title: 'Cold drinks', intro: 'For hot days and long afternoons.',
         items: [
-          { name: 'Iced latte', price: 18, desc: 'Espresso over ice and cold milk.', emoji: '🧋', tags: ['V', 'GF'] },
-          { name: 'Cold brew', price: 17, desc: 'Steeped for 18 hours. Bold and smooth.', emoji: '🧊', tags: ['VG', 'GF'] },
-          { name: 'Iced matcha latte', price: 20, desc: 'Ceremonial matcha with oat milk.', emoji: '🍵', tags: ['VG', 'GF', 'NEW'] },
-          { name: 'Affogato', price: 22, desc: 'Vanilla ice cream drowned in espresso.', emoji: '🍨', tags: ['V', 'GF'] },
-          { name: 'Fresh orange juice', price: 16, desc: 'Squeezed to order.', emoji: '🍊', tags: ['VG', 'GF'] },
-          { name: 'Mint lemonade', price: 14, desc: 'Fresh lemons, mint and a little sugar.', emoji: '🍋', tags: ['VG', 'GF'] },
+          { name: 'Iced latte', price: 18, desc: 'Espresso over ice and cold milk.', img: 'iced-latte', tags: ['V', 'GF'] },
+          { name: 'Cold brew', price: 17, desc: 'Steeped for 18 hours. Bold and smooth.', img: 'cold-brew', tags: ['VG', 'GF'] },
+          { name: 'Iced matcha latte', price: 20, desc: 'Ceremonial matcha with oat milk.', img: 'iced-matcha', tags: ['VG', 'GF', 'NEW'] },
+          { name: 'Affogato', price: 22, desc: 'Vanilla ice cream drowned in espresso.', img: 'affogato', tags: ['V', 'GF'] },
+          { name: 'Fresh orange juice', price: 16, desc: 'Squeezed to order.', img: 'orange-juice', tags: ['VG', 'GF'] },
+          { name: 'Mint lemonade', price: 14, desc: 'Fresh lemons, mint and a little sugar.', img: 'lemonade', tags: ['VG', 'GF'] },
         ],
       },
       {
-        id: 'more', title: 'Tea & more', emoji: '🍵', intro: 'Not a coffee person? We’ve got you.',
+        id: 'more', title: 'Tea & more', intro: 'Not a coffee person? We’ve got you.',
         items: [
-          { name: 'Matcha latte', price: 19, desc: 'Whisked matcha with steamed milk.', emoji: '🍵', tags: ['V', 'GF'] },
-          { name: 'Chai latte', price: 17, desc: 'Warm spices, black tea and milk.', emoji: '🫖', tags: ['V', 'GF'] },
-          { name: 'Hot chocolate', price: 16, desc: 'Real dark chocolate. Marshmallows +₪2.', emoji: '🍫', tags: ['V', 'GF'] },
-          { name: 'Fresh mint tea', price: 12, desc: 'A big handful of mint leaves.', emoji: '🌿', tags: ['VG', 'GF'] },
+          { name: 'Matcha latte', price: 19, desc: 'Whisked matcha with steamed milk.', img: 'matcha-latte', tags: ['V', 'GF'] },
+          { name: 'Chai latte', price: 17, desc: 'Warm spices, black tea and milk.', img: 'chai', tags: ['V', 'GF'] },
+          { name: 'Hot chocolate', price: 16, desc: 'Real dark chocolate. Marshmallows +₪2.', img: 'hot-chocolate', tags: ['V', 'GF'] },
+          { name: 'Fresh mint tea', price: 12, desc: 'A big handful of mint leaves.', img: 'mint-tea', tags: ['VG', 'GF'] },
         ],
       },
       {
-        id: 'breakfast', title: 'Breakfast', emoji: '🍳', intro: 'Served all day, every day.',
+        id: 'breakfast', title: 'Breakfast', intro: 'Served all day, every day.',
         items: [
-          { name: 'Clearwater breakfast', price: 62, desc: 'Two eggs any style, chopped salad, cheeses, tahini, jam, bread basket, and a hot drink.', emoji: '🍳', tags: ['V'] },
-          { name: 'Shakshuka', price: 52, desc: 'Eggs in spiced tomato and pepper sauce, tahini, fresh bread.', emoji: '🍳', tags: ['V'] },
-          { name: 'Green shakshuka', price: 54, desc: 'Spinach, leek and feta with soft eggs.', emoji: '🥬', tags: ['V', 'NEW'] },
-          { name: 'Avocado toast', price: 46, desc: 'Sourdough, smashed avocado, chili, lemon, poached egg.', emoji: '🥑', tags: ['V'] },
-          { name: 'Buttermilk pancakes', price: 44, desc: 'Stack of three, maple syrup, berries, whipped cream.', emoji: '🥞', tags: ['V'] },
-          { name: 'Halloumi toast', price: 44, desc: 'Grilled halloumi, tomato, za’atar, sourdough.', emoji: '🧀', tags: ['V'] },
-          { name: 'Granola bowl', price: 38, desc: 'House granola, yogurt, seasonal fruit, honey.', emoji: '🥣', tags: ['V'] },
-          { name: 'Omelette', price: 42, desc: 'Three eggs with your choice of cheese, herbs or mushrooms. Comes with salad and bread.', emoji: '🍳', tags: ['V', 'GF'] },
+          { name: 'Nook breakfast', price: 62, desc: 'Two eggs any style, chopped salad, cheeses, tahini, jam, bread basket, and a hot drink.', img: 'full-breakfast', tags: ['V'] },
+          { name: 'Shakshuka', price: 52, desc: 'Eggs in spiced tomato and pepper sauce, tahini, fresh bread.', img: 'shakshuka', tags: ['V'] },
+          { name: 'Green shakshuka', price: 54, desc: 'Spinach, leek and feta with soft eggs.', img: 'green-shakshuka', tags: ['V', 'NEW'] },
+          { name: 'Avocado toast', price: 46, desc: 'Sourdough, smashed avocado, chili, lemon, poached egg.', img: 'avocado-toast', tags: ['V'] },
+          { name: 'Buttermilk pancakes', price: 44, desc: 'Stack of three, maple syrup, berries, whipped cream.', img: 'pancakes', tags: ['V'] },
+          { name: 'Halloumi toast', price: 44, desc: 'Grilled halloumi, tomato, za’atar, sourdough.', img: 'halloumi', tags: ['V'] },
+          { name: 'Granola bowl', price: 38, desc: 'House granola, yogurt, seasonal fruit, honey.', img: 'granola', tags: ['V'] },
+          { name: 'Omelette', price: 42, desc: 'Three eggs with your choice of cheese, herbs or mushrooms. Comes with salad and bread.', img: 'omelette', tags: ['V', 'GF'] },
         ],
       },
       {
-        id: 'bakery', title: 'Bakery', emoji: '🥐', intro: 'Baked in our oven every morning, while it lasts.',
+        id: 'bakery', title: 'Bakery', intro: 'Baked in our oven every morning, while it lasts.',
         items: [
-          { name: 'Butter croissant', price: 14, desc: 'Flaky, golden, 100% butter.', emoji: '🥐', tags: ['V'] },
-          { name: 'Almond croissant', price: 18, desc: 'Twice-baked with almond cream.', emoji: '🥐', tags: ['V'] },
-          { name: 'Pain au chocolat', price: 16, desc: 'Two bars of dark chocolate inside.', emoji: '🍫', tags: ['V'] },
-          { name: 'Cinnamon roll', price: 17, desc: 'Soft, sticky, with cream cheese glaze.', emoji: '🌀', tags: ['V'] },
-          { name: 'Banana bread', price: 15, desc: 'Moist, with walnuts. Ask for it toasted.', emoji: '🍌', tags: ['V'] },
-          { name: 'Basque cheesecake', price: 26, desc: 'Burnt top, creamy middle.', emoji: '🍰', tags: ['V', 'GF'] },
-          { name: 'Chocolate chip cookie', price: 10, desc: 'Crisp edges, gooey center.', emoji: '🍪', tags: ['V'] },
-          { name: 'Sourdough loaf', price: 32, desc: 'Take one home. Baked daily.', emoji: '🍞', tags: ['VG'] },
+          { name: 'Butter croissant', price: 14, desc: 'Flaky, golden, 100% butter.', img: 'croissant', tags: ['V'] },
+          { name: 'Almond croissant', price: 18, desc: 'Twice-baked with almond cream.', img: 'almond-croissant', tags: ['V'] },
+          { name: 'Pain au chocolat', price: 16, desc: 'Two bars of dark chocolate inside.', img: 'pain-au-chocolat', tags: ['V'] },
+          { name: 'Cinnamon roll', price: 17, desc: 'Soft, sticky, with cream cheese glaze.', img: 'cinnamon-roll', tags: ['V'] },
+          { name: 'Banana bread', price: 15, desc: 'Moist, with walnuts. Ask for it toasted.', img: 'banana-bread', tags: ['V'] },
+          { name: 'Basque cheesecake', price: 26, desc: 'Burnt top, creamy middle.', img: 'cheesecake', tags: ['V', 'GF'] },
+          { name: 'Chocolate chip cookie', price: 10, desc: 'Crisp edges, gooey center.', img: 'cookie', tags: ['V'] },
+          { name: 'Sourdough loaf', price: 32, desc: 'Take one home. Baked daily.', img: 'sourdough', tags: ['VG'] },
         ],
       },
       {
-        id: 'lunch', title: 'Sandwiches & salads', emoji: '🥪', intro: 'From 11:30.',
+        id: 'lunch', title: 'Sandwiches & salads', intro: 'From 11:30.',
         items: [
-          { name: 'Tuna ciabatta', price: 42, desc: 'Tuna salad, egg, pickles, tomato, aioli.', emoji: '🥪', tags: [] },
-          { name: 'Mozzarella & pesto', price: 40, desc: 'Fresh mozzarella, tomato, basil pesto, arugula.', emoji: '🥪', tags: ['V'] },
-          { name: 'Roasted veggie wrap', price: 38, desc: 'Roasted peppers, eggplant, hummus, greens.', emoji: '🌯', tags: ['VG'] },
-          { name: 'Greek salad', price: 44, desc: 'Tomato, cucumber, olives, red onion, feta.', emoji: '🥗', tags: ['V', 'GF'] },
-          { name: 'Quinoa bowl', price: 46, desc: 'Quinoa, sweet potato, avocado, chickpeas, tahini.', emoji: '🥗', tags: ['VG', 'GF'] },
+          { name: 'Tuna ciabatta', price: 42, desc: 'Tuna salad, egg, pickles, tomato, aioli.', img: 'tuna-sandwich', tags: [] },
+          { name: 'Mozzarella & pesto', price: 40, desc: 'Fresh mozzarella, tomato, basil pesto, arugula.', img: 'mozzarella-sandwich', tags: ['V'] },
+          { name: 'Roasted veggie wrap', price: 38, desc: 'Roasted peppers, eggplant, hummus, greens.', img: 'wrap', tags: ['VG'] },
+          { name: 'Greek salad', price: 44, desc: 'Tomato, cucumber, olives, red onion, feta.', img: 'greek-salad', tags: ['V', 'GF'] },
+          { name: 'Quinoa bowl', price: 46, desc: 'Quinoa, sweet potato, avocado, chickpeas, tahini.', img: 'quinoa-bowl', tags: ['VG', 'GF'] },
         ],
       },
     ];
@@ -156,14 +156,14 @@
       const link = document.createElement('a');
       link.className = 'chip' + (ci === 0 ? ' active' : '');
       link.href = `#${cat.id}`;
-      link.textContent = `${cat.emoji} ${cat.title}`;
+      link.textContent = cat.title;
       nav.append(link);
 
       const section = document.createElement('section');
       section.className = 'menu-cat on-scroll';
       section.id = cat.id;
       const h2 = document.createElement('h2');
-      h2.textContent = `${cat.emoji} ${cat.title}`;
+      h2.textContent = cat.title;
       const intro = document.createElement('p');
       intro.textContent = cat.intro;
       const grid = document.createElement('div');
@@ -172,10 +172,13 @@
       cat.items.forEach((item) => {
         const card = document.createElement('article');
         card.className = 'menu-item';
-        const emoji = document.createElement('div');
-        emoji.className = 'emoji';
-        emoji.setAttribute('aria-hidden', 'true');
-        emoji.textContent = item.emoji;
+        const photo = document.createElement('img');
+        photo.className = 'thumb';
+        photo.src = `/img/${item.img}.jpg`;
+        photo.alt = item.name;
+        photo.loading = 'lazy';
+        photo.width = 68;
+        photo.height = 68;
         const body = document.createElement('div');
         const name = document.createElement('h3');
         name.textContent = item.name;
@@ -196,7 +199,7 @@
         const price = document.createElement('div');
         price.className = 'price';
         price.textContent = `₪${item.price}`;
-        card.append(emoji, body, price);
+        card.append(photo, body, price);
         grid.append(card);
       });
 

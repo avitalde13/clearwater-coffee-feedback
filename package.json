@@ -1,7 +1,7 @@
 {
-  "name": "bean-there-feedback",
+  "name": "nook-coffee-house",
   "version": "1.0.0",
-  "description": "Customer feedback app for Bean There Café",
+  "description": "Website, menu and customer feedback for Nook Coffee House",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

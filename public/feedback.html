@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1572b6">
+  <meta name="theme-color" content="#4a3426">
   <meta name="format-detection" content="telephone=no">
-  <title>Clearwater Coffee – Feedback</title>
+  <title>Nook – Feedback</title>
   <link rel="icon" href="/logo.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/logo.svg">
   <link rel="stylesheet" href="/styles.css">
@@ -15,7 +15,7 @@
     <div class="back-row"><a class="back-link" href="/">← Home</a></div>
     <div class="hero-inner">
       <div class="logo-badge"><img src="/logo.svg" alt=""></div>
-      <h1 class="wordmark">Clearwater <small>Coffee</small></h1>
+      <h1 class="wordmark"><span class="nook" role="img" aria-label="Nook">N<i class="o"></i><i class="o"></i>K</span><small>coffee house</small></h1>
       <p class="tagline">How was your visit today?</p>
     </div>
     <svg class="waves" viewBox="0 0 1200 48" preserveAspectRatio="none" aria-hidden="true">
@@ -31,7 +31,7 @@
         <path d="M17 29 l7 7 l15 -16"/>
       </svg>
       <strong>Thank you!</strong>
-      <span>Your feedback helps us get better ☕</span>
+      <span>Your feedback helps us get better.</span>
     </div>
     <div id="failure" class="alert err" role="alert" hidden>Something went wrong, please try again</div>
 
@@ -73,7 +73,7 @@
       <div class="field reveal" style="--i:5">
         <span class="label">Photo <span class="optional">(optional)</span></span>
         <label class="photo-pick" id="photo-pick" for="photo">
-          <span aria-hidden="true">📷</span> Add a photo
+          <svg class="icon-inline" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg> Add a photo
         </label>
         <input type="file" id="photo" accept="image/*" class="visually-hidden">
         <div class="photo-preview" id="photo-preview" hidden>

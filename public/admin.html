@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1572b6">
+  <meta name="theme-color" content="#4a3426">
   <meta name="robots" content="noindex">
-  <title>Clearwater Coffee – Owner</title>
+  <title>Nook – Owner</title>
   <link rel="icon" href="/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css">
 </head>
@@ -13,7 +13,7 @@
   <header class="hero">
     <div class="hero-inner">
       <div class="logo-badge"><img src="/logo.svg" alt=""></div>
-      <h1 class="wordmark">Clearwater <small>Coffee</small></h1>
+      <h1 class="wordmark"><span class="nook" role="img" aria-label="Nook">N<i class="o"></i><i class="o"></i>K</span><small>coffee house</small></h1>
       <p class="tagline">Owner dashboard</p>
     </div>
     <svg class="waves" viewBox="0 0 1200 48" preserveAspectRatio="none" aria-hidden="true">
@@ -36,7 +36,7 @@
 
     <!-- First login with the temporary password: must change it before anything else -->
     <section id="gate" class="card login-card gate" hidden>
-      <div class="wave-hand" aria-hidden="true">👋</div>
+      <div class="wave-hand" aria-hidden="true"><img src="/logo.svg" alt="" width="56" height="56"></div>
       <h2 id="gate-title">Hello!</h2>
       <p>Please press <strong>Change password</strong> to continue.</p>
       <button class="btn" type="button" id="gate-btn">Change password</button>
@@ -124,7 +124,7 @@
       adminName = name || '';
       const text = adminName ? `Hello ${adminName}` : 'Hello!';
       $('gate-title').textContent = text;
-      $('hello').textContent = adminName ? `Hello, ${adminName} 👋` : 'Hello 👋';
+      $('hello').textContent = adminName ? `Hello, ${adminName}` : 'Hello';
     }
 
     function showLogin(message) {

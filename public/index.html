@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1572b6">
-  <meta name="description" content="Clearwater Coffee – specialty coffee, fresh bakery and all-day breakfast.">
-  <title>Clearwater Coffee</title>
+  <meta name="theme-color" content="#4a3426">
+  <meta name="description" content="Nook – your cozy corner for coffee, fresh bakery and all-day breakfast.">
+  <title>Nook – Coffee House</title>
   <link rel="icon" href="/logo.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/logo.svg">
   <link rel="stylesheet" href="/styles.css">
@@ -15,7 +15,7 @@
     <nav class="topnav" aria-label="Main">
       <a class="brand" href="/">
         <span class="brand-badge"><img src="/logo.svg" alt=""></span>
-        <span class="brand-name">Clearwater<small>Coffee</small></span>
+        <span class="brand-name"><span class="nook" role="img" aria-label="Nook">N<i class="o"></i><i class="o"></i>K</span><small>coffee house</small></span>
       </a>
       <span class="navlinks">
         <a href="/menu">Menu</a>
@@ -26,36 +26,16 @@
     <div class="hero-grid">
       <div class="reveal" style="--i:1">
         <span class="eyebrow">Coffee · Bakery · Breakfast</span>
-        <h1 class="hero-title">Slow mornings,<br>great coffee.</h1>
-        <p class="hero-text">Freshly roasted beans, pastries out of the oven every morning, and a breakfast worth sitting down for.</p>
+        <h1 class="hero-title">Your cozy<br>corner.</h1>
+        <p class="hero-text">Good coffee, pastries fresh from the oven, and a breakfast worth sitting down for. Pull up a chair and stay a while.</p>
         <div class="hero-actions">
           <a class="btn light inline" href="/menu">See the menu</a>
           <a class="btn outline inline" href="/feedback">Leave feedback</a>
         </div>
       </div>
 
-      <div class="cup-art reveal" style="--i:3" aria-hidden="true">
-        <svg viewBox="0 0 300 290">
-          <defs>
-            <clipPath id="cup-shape"><path d="M70 122 H230 V160 A80 80 0 0 1 70 160 Z"/></clipPath>
-          </defs>
-          <g class="steam">
-            <path d="M115 95 C100 80 130 70 115 52 C100 36 125 28 118 14"/>
-            <path d="M150 95 C135 80 165 70 150 52 C135 36 160 28 153 14"/>
-            <path d="M185 95 C170 80 200 70 185 52 C170 36 195 28 188 14"/>
-          </g>
-          <ellipse cx="150" cy="262" rx="128" ry="22" fill="#d7ebf8"/>
-          <ellipse cx="150" cy="257" rx="98" ry="14" fill="#ffffff"/>
-          <path d="M226 140 a32 32 0 1 1 -4 62" fill="none" stroke="#ffffff" stroke-width="15" stroke-linecap="round"/>
-          <path d="M70 122 H230 V160 A80 80 0 0 1 70 160 Z" fill="#ffffff"/>
-          <g clip-path="url(#cup-shape)">
-            <rect x="60" y="176" width="180" height="16" fill="#29a9e1"/>
-            <rect x="60" y="198" width="180" height="5" fill="#1572b6"/>
-          </g>
-          <ellipse cx="150" cy="122" rx="80" ry="16" fill="#eef6fc"/>
-          <ellipse cx="150" cy="124" rx="70" ry="11" fill="#7a4a2e"/>
-          <path d="M150 133 C138 124 132 118 140 114 C145 112 149 115 150 118 C151 115 155 112 160 114 C168 118 162 124 150 133 Z" fill="#f2dcc4"/>
-        </svg>
+      <div class="hero-photo reveal" style="--i:3">
+        <img src="/img/hero-lg.jpg" alt="Hands holding a latte with heart latte art" fetchpriority="high">
       </div>
     </div>
 
@@ -66,19 +46,19 @@
   </header>
 
   <main class="site">
-    <section class="section features on-scroll" aria-label="Why Clearwater">
+    <section class="section features on-scroll" aria-label="Why Nook">
       <div class="feature">
-        <div class="icon" aria-hidden="true">☕</div>
+        <div class="photo"><img src="/img/roast-lg.jpg" alt="Coffee beans turning in a roaster" loading="lazy"></div>
         <h3>Roasted fresh</h3>
         <p>Single-origin and house blends, roasted in small batches every week.</p>
       </div>
       <div class="feature">
-        <div class="icon" aria-hidden="true">🥐</div>
+        <div class="photo"><img src="/img/bakery-lg.jpg" alt="A basket of fresh croissants" loading="lazy"></div>
         <h3>Baked every morning</h3>
         <p>Croissants, cinnamon rolls and sourdough, straight from our oven.</p>
       </div>
       <div class="feature">
-        <div class="icon" aria-hidden="true">🍳</div>
+        <div class="photo"><img src="/img/breakfast-lg.jpg" alt="A table full of breakfast plates" loading="lazy"></div>
         <h3>Breakfast all day</h3>
         <p>Shakshuka, pancakes and our full breakfast, served until closing.</p>
       </div>
@@ -94,21 +74,21 @@
       </div>
       <div class="favorites">
         <article class="fav">
-          <div class="fav-art"><span aria-hidden="true">☕</span></div>
+          <div class="fav-art"><img src="/img/flat-white-lg.jpg" alt="Flat white with latte art" loading="lazy"></div>
           <div class="fav-body">
             <h3>Flat white <span class="price">₪16</span></h3>
             <p>Double ristretto, silky steamed milk.</p>
           </div>
         </article>
         <article class="fav">
-          <div class="fav-art"><span aria-hidden="true">🥐</span></div>
+          <div class="fav-art"><img src="/img/almond-croissant-lg.jpg" alt="Almond croissant on a plate" loading="lazy"></div>
           <div class="fav-body">
             <h3>Almond croissant <span class="price">₪18</span></h3>
             <p>Twice-baked with almond cream and toasted flakes.</p>
           </div>
         </article>
         <article class="fav">
-          <div class="fav-art"><span aria-hidden="true">🍳</span></div>
+          <div class="fav-art"><img src="/img/shakshuka-lg.jpg" alt="Shakshuka in a pan" loading="lazy"></div>
           <div class="fav-body">
             <h3>Shakshuka <span class="price">₪52</span></h3>
             <p>Eggs in spiced tomato sauce, tahini and fresh bread.</p>
@@ -142,7 +122,7 @@
       <div class="card">
         <p class="kicker">Good to know</p>
         <h2 style="margin:0 0 10px; font-size:24px; font-weight:800">Make yourself at home</h2>
-        <p style="margin:0 0 8px">📶 Free Wi-Fi &nbsp;·&nbsp; 🐶 Dog friendly &nbsp;·&nbsp; 🌿 Outdoor seating</p>
+        <ul class="amenities"><li>Free Wi-Fi</li><li>Dog friendly</li><li>Outdoor seating</li></ul>
         <p style="margin:0; color:var(--muted)">Oat, almond and soy milk available for every drink. Ask us about allergens anytime.</p>
       </div>
     </section>
@@ -160,7 +140,7 @@
       <a href="/feedback">Leave feedback</a>
       <button type="button" data-owner-login>Owner login</button>
     </nav>
-    <div>© <span id="year"></span> Clearwater Coffee</div>
+    <div>© <span id="year"></span> Nook Coffee House</div>
   </footer>
 
   <!-- Owner login: password only, then on to /admin -->

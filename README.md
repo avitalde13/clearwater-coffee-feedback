@@ -1,4 +1,4 @@
-# Clearwater Coffee – Website and Customer Feedback
+# Nook Coffee House – Website and Customer Feedback
 
 The café's website: a landing page, the menu, a feedback form customers reach from a QR code on the table, and a password-protected owner dashboard.
 

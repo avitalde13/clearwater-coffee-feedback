@@ -191,7 +191,7 @@ const PORT = process.env.PORT || 3000;
 
 init()
   .then(() => {
-    app.listen(PORT, () => console.log(`Clearwater Coffee feedback running on http://localhost:${PORT}`));
+    app.listen(PORT, () => console.log(`Nook website running on http://localhost:${PORT}`));
   })
   .catch((err) => {
     console.error('Database init failed:', err);
