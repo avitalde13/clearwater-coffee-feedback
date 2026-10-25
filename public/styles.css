@@ -8,9 +8,15 @@
   --brand: #a8643b;
   --brand-2: #c98d5a;
   --brand-dark: #4a3426;
+  --cinnamon: #a8643b;
   --brand-text: #ffffff;
   --btn-text: #ffffff;
-  --brand-soft: #f1e4d3;
+  --brand-soft: #f8dde3;
+  --pink: #f8dde3;
+  --pink-2: #f2c4ce;
+  --mocha: #4a3426;
+  --oat: #e3d5c1;
+  --latte: #f2dcc4;
   --star: #e0a43a;
   --star-off: #e3d5c1;
   --ok-bg: #e9f7ef;
@@ -36,7 +42,12 @@
     --brand-dark: #2a1d16;
     --brand-text: #1e140e;
     --btn-text: #1e140e;
-    --brand-soft: #33241b;
+    --brand-soft: #3a2629;
+    --pink: #f8dde3;
+    --pink-2: #f2c4ce;
+    --mocha: #4a3426;
+    --oat: #e3d5c1;
+    --latte: #f2dcc4;
     --star: #f0b54a;
     --star-off: #4a3a30;
     --ok-bg: #12301f;
@@ -54,7 +65,7 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: var(--bg);
   color: var(--text);
   line-height: 1.5;
@@ -85,11 +96,6 @@ body {
   animation: float 4s ease-in-out infinite;
 }
 .logo-badge img { width: 34px; height: 43px; display: block; }
-.wordmark {
-  margin: 14px 0 2px; font-size: 24px; font-weight: 800;
-  letter-spacing: 4px; text-transform: uppercase; color: #fff;
-}
-.wordmark small { display: block; font-size: 12px; letter-spacing: 6px; font-weight: 600; opacity: 0.85; margin-top: 2px; }
 .tagline { margin: 10px 0 0; font-size: 17px; opacity: 0.95; }
 
 .waves {
@@ -508,26 +514,53 @@ input.invalid { border-color: var(--err-text); animation: shake 0.45s; }
 @media (min-width: 760px) { .hero-actions .btn { flex: 0 0 auto; padding: 14px 26px; } }
 
 /* =====================================================================
-   Nook brand: wordmark with two coffee cups as the O's, and real photos
+   Nook Café brand: badge logo, rounded font, baby pink, and real photos
    ===================================================================== */
-.nook { display: inline-flex; align-items: flex-end; gap: 0.06em; line-height: 1; letter-spacing: 0; }
-.nook .o {
-  position: relative; display: inline-block;
-  width: 0.72em; height: 0.62em; margin: 0 0.16em 0.04em 0.02em;
-  border: 0.13em solid currentColor; border-top-width: 0.1em;
-  border-radius: 0.06em 0.06em 0.36em 0.36em;
+.brand-badge, .logo-badge { display: none; } /* old logo spots, replaced by .nook-badge */
+
+/* Rounded font for headings, buttons and numbers */
+h1, h2, h3, .btn, .chip, .hero-title, .section-title, .rating-label, .rating-word, .stat .v, .toolbar .hello,
+.gate h2, .cta h2, .navlinks a, .price, .eyebrow, .tagline, .back-link, .brand-name, .kicker, .open-now {
+  font-family: "Fredoka", "Nunito", -apple-system, BlinkMacSystemFont, sans-serif;
 }
-.nook .o::after { /* handle */
-  content: ""; position: absolute; right: -0.34em; top: 0.06em;
-  width: 0.22em; height: 0.26em;
-  border: 0.1em solid currentColor; border-left: 0; border-radius: 0 0.18em 0.18em 0;
+.hero-title { font-weight: 700; letter-spacing: -0.5px; }
+
+/* ---- The Nook Café badge: pink circle, brown ring, "nook" with two cups as the o's ---- */
+.nook-badge {
+  --s: 150px;
+  width: var(--s); height: var(--s); flex-shrink: 0;
+  border-radius: 50%; display: grid; place-items: center; text-align: center;
+  background: var(--pink); border: calc(var(--s) * 0.035) solid var(--mocha); color: var(--mocha);
+  box-shadow: 0 10px 28px rgba(20, 10, 4, 0.3);
+  margin: 0 auto;
 }
-.wordmark .nook { font-size: 40px; font-weight: 800; }
-.wordmark small { margin-top: 8px; letter-spacing: 5px; }
-.brand-name .nook { font-size: 22px; font-weight: 800; }
-.brand-name small { margin-top: 3px; letter-spacing: 3px; }
-.logo-badge img { width: 40px; height: 40px; }
-.brand-badge img { width: 24px; height: 24px; }
+.nook-word {
+  display: flex; align-items: center; justify-content: center;
+  font: 700 calc(var(--s) * 0.3) / 1 "Fredoka", "Nunito", sans-serif; letter-spacing: -0.02em;
+}
+.nook-cup {
+  width: calc(var(--s) * 0.22); height: calc(var(--s) * 0.22); border-radius: 50%;
+  margin: calc(var(--s) * 0.05) calc(var(--s) * 0.008) 0; display: grid; place-items: center;
+}
+.nook-cup.latte { background: var(--mocha); box-shadow: inset 0 0 0 calc(var(--s) * 0.03) var(--oat); }
+.nook-cup.rose { background: var(--pink-2); box-shadow: inset 0 0 0 calc(var(--s) * 0.03) #fff; }
+.nook-cup svg { width: 46%; height: 46%; }
+.nook-sub {
+  font: 600 calc(var(--s) * 0.07) "Fredoka", sans-serif; letter-spacing: 0.5em;
+  margin: calc(var(--s) * 0.03) 0 0 0.5em; color: var(--cinnamon, #a8643b);
+}
+/* Small version (top bar, icons): just the two cups */
+.nook-icon { --s: 44px; box-shadow: 0 4px 12px rgba(20, 10, 4, 0.3); margin: 0; }
+.nook-icon .nook-cup { width: calc(var(--s) * 0.34); height: calc(var(--s) * 0.34); margin: 0 calc(var(--s) * 0.02); }
+.nook-icon .nook-cup.latte { box-shadow: inset 0 0 0 calc(var(--s) * 0.05) var(--oat); }
+.nook-icon .nook-cup.rose { box-shadow: inset 0 0 0 calc(var(--s) * 0.05) #fff; }
+.hero .nook-badge { animation: float 5s ease-in-out infinite; }
+
+.brand-name { font-weight: 700; font-size: 26px; line-height: 1; letter-spacing: -0.3px; text-transform: none; display: flex; align-items: baseline; gap: 6px; }
+.brand-name small { font-size: 12px; font-weight: 600; letter-spacing: 3px; opacity: 0.85; text-transform: uppercase; }
+
+.btn.pink { width: auto; padding: 14px 24px; background: var(--pink); color: var(--mocha); box-shadow: 0 8px 22px rgba(30, 18, 10, 0.25); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* Hero photo in an arch, like a cozy doorway */
 .hero-photo {

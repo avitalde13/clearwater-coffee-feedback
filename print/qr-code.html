@@ -2,27 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=block">
   <title>Nook Café – QR code</title>
   <style>
     @page { size: A4; margin: 0; }
     * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     html, body { margin: 0; background: #ffffff; color: #2e211a; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
-    .nook { display: inline-flex; align-items: flex-end; line-height: 1; }
-    .nook .o { position: relative; display: inline-block; width: 0.72em; height: 0.62em; margin: 0 0.16em 0.04em 0.02em;
-      border: 0.13em solid currentColor; border-top-width: 0.1em; border-radius: 0.06em 0.06em 0.36em 0.36em; }
-    .nook .o::after { content: ""; position: absolute; right: -0.34em; top: 0.06em; width: 0.22em; height: 0.26em;
-      border: 0.1em solid currentColor; border-left: 0; border-radius: 0 0.18em 0.18em 0; }
+    body { font-family: Nunito, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
     body { width: 210mm; height: 297mm; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    .wordmark { color: #4a3426; text-align: center; margin-bottom: 10mm; }
-    .wordmark .nook { font-size: 40pt; font-weight: 800; }
-    .wordmark small { display: block; font-size: 11pt; letter-spacing: 7pt; color: #a8643b; font-weight: 700; margin-top: 3mm; text-transform: uppercase; }
-    .qr { width: 130mm; height: 130mm; }
+    .qr { width: 120mm; height: 120mm; margin-top: 10mm; }
     p { margin: 8mm 0 0; font-size: 12pt; color: #7a6656; }
+    .nook-badge { --s: 62mm; width: var(--s); height: var(--s); border-radius: 50%; display: grid; place-items: center; text-align: center;
+      background: #f8dde3; border: calc(var(--s) * .035) solid #4a3426; color: #4a3426; margin: 0 auto; }
+    .nook-word { display: flex; align-items: center; justify-content: center; font: 700 calc(var(--s) * .3) / 1 Fredoka, sans-serif; letter-spacing: -0.02em; }
+    .nook-cup { width: calc(var(--s) * .22); height: calc(var(--s) * .22); border-radius: 50%; margin: calc(var(--s) * .05) calc(var(--s) * .008) 0; display: grid; place-items: center; }
+    .nook-cup.latte { background: #4a3426; box-shadow: inset 0 0 0 calc(var(--s) * .03) #e3d5c1; }
+    .nook-cup.rose { background: #f2c4ce; box-shadow: inset 0 0 0 calc(var(--s) * .03) #fff; }
+    .nook-cup svg { width: 46%; height: 46%; }
+    .nook-sub { font: 600 calc(var(--s) * .07) Fredoka, sans-serif; letter-spacing: .5em; margin: calc(var(--s) * .03) 0 0 .5em; color: #a8643b; }
   </style>
 </head>
 <body>
-  <div class="wordmark"><span class="nook">N<i class="o"></i><i class="o"></i>K</span><small>café</small></div>
+  <div class="nook-badge"><div><div class="nook-word">n<span class="nook-cup latte"><svg viewBox="0 0 24 24"><path d="M12 20 C5 15 3 11 6 8 C8 6 11 7 12 9 C13 7 16 6 18 8 C21 11 19 15 12 20Z" fill="#f2dcc4"/></svg></span><span class="nook-cup rose"></span>k</div><div class="nook-sub">CAFÉ</div></div></div>
   <img class="qr" src="qr-feedback.svg" alt="QR code to the feedback page">
   <p>nook-cafe.up.railway.app/feedback</p>
 </body>

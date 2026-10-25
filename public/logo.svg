@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Nook Café">
-  <path d="M24 6 c-3 4 3 6 0 11 M33 4 c-3 4 3 6 0 11" fill="none" stroke="#A8643B" stroke-width="3" stroke-linecap="round"/>
-  <path d="M10 24 h36 v14 a18 18 0 0 1 -36 0 z" fill="#4A3426"/>
-  <path d="M46 28 h3 a8 8 0 0 1 0 16 h-4" fill="none" stroke="#4A3426" stroke-width="4.5" stroke-linecap="round"/>
-  <path d="M15 29 h26" stroke="#C98D5A" stroke-width="3" stroke-linecap="round"/>
-  <rect x="6" y="56" width="44" height="4" rx="2" fill="#A8643B"/>
+  <!-- Small Nook Café mark: the pink badge with the two cups seen from above -->
+  <circle cx="32" cy="32" r="29.5" fill="#F8DDE3" stroke="#4A3426" stroke-width="4"/>
+  <circle cx="21.5" cy="32" r="10" fill="#4A3426" stroke="#E3D5C1" stroke-width="3"/>
+  <path d="M21.5 37 C17.5 34.2 16.6 32 18 30.4 C19.1 29.2 20.7 29.6 21.5 30.8 C22.3 29.6 23.9 29.2 25 30.4 C26.4 32 25.5 34.2 21.5 37 Z" fill="#F2DCC4"/>
+  <circle cx="42.5" cy="32" r="10" fill="#F2C4CE" stroke="#FFFFFF" stroke-width="3"/>
 </svg>
