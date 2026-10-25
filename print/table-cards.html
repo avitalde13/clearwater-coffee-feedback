@@ -2,29 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Clearwater Coffee – Table cards</title>
+  <title>Nook Café – Table cards</title>
   <style>
     @page { size: A4; margin: 0; }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; background: #ffffff; color: #1d2a35; }
+    * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    html, body { margin: 0; background: #ffffff; color: #2e211a; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
-    .sheet {
-      width: 210mm; height: 297mm;
-      display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
-    }
+    .nook { display: inline-flex; align-items: flex-end; line-height: 1; }
+    .nook .o { position: relative; display: inline-block; width: 0.72em; height: 0.62em; margin: 0 0.16em 0.04em 0.02em;
+      border: 0.13em solid currentColor; border-top-width: 0.1em; border-radius: 0.06em 0.06em 0.36em 0.36em; }
+    .nook .o::after { content: ""; position: absolute; right: -0.34em; top: 0.06em; width: 0.22em; height: 0.26em;
+      border: 0.1em solid currentColor; border-left: 0; border-radius: 0 0.18em 0.18em 0; }
+    .sheet { width: 210mm; height: 297mm; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
     .card {
-      border: 0.3mm dashed #b8c7d4; /* cut lines */
+      border: 0.3mm dashed #c9b49c; /* cut lines */
+      background: #f7f0e6;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       text-align: center; padding: 10mm 8mm;
     }
-    .logo { width: 13mm; height: 16mm; }
-    .wordmark { margin: 3mm 0 0; font-size: 15pt; font-weight: 700; letter-spacing: 3pt; }
-    .wordmark small { display: block; font-size: 8pt; letter-spacing: 4pt; color: #5f7182; font-weight: 600; margin-top: 1mm; }
-    .ask { margin: 7mm 0 1mm; font-size: 17pt; font-weight: 800; }
-    .sub { margin: 0 0 4mm; font-size: 10.5pt; color: #5f7182; }
-    .qr { width: 52mm; height: 52mm; border: 1.2mm solid #29a9e1; border-radius: 4mm; padding: 1.5mm; }
-    .scan { margin: 4mm 0 0; font-size: 11pt; font-weight: 700; color: #1572b6; }
-    .url { margin: 2mm 0 0; font-size: 7.5pt; color: #5f7182; }
+    .logo { width: 15mm; height: 15mm; }
+    .wordmark { margin: 2mm 0 0; color: #4a3426; }
+    .wordmark .nook { font-size: 26pt; font-weight: 800; }
+    .wordmark small { display: block; font-size: 8pt; letter-spacing: 5pt; color: #a8643b; font-weight: 700; margin-top: 1.5mm; text-transform: uppercase; }
+    .ask { margin: 6mm 0 1mm; font-size: 17pt; font-weight: 800; }
+    .sub { margin: 0 0 4mm; font-size: 10.5pt; color: #7a6656; }
+    .qr { width: 50mm; height: 50mm; background: #fff; border: 1.2mm solid #a8643b; border-radius: 4mm; padding: 1.5mm; }
+    .scan { margin: 4mm 0 0; font-size: 11pt; font-weight: 700; color: #a8643b; }
+    .url { margin: 2mm 0 0; font-size: 7.5pt; color: #7a6656; }
   </style>
 </head>
 <body>
@@ -32,39 +36,39 @@
     <!-- Four identical cards: print, cut along the dashed lines, place one per table -->
     <section class="card">
       <img class="logo" src="../public/logo.svg" alt="">
-      <div class="wordmark">CLEARWATER<small>COFFEE</small></div>
+      <div class="wordmark"><span class="nook">N<i class="o"></i><i class="o"></i>K</span><small>café</small></div>
       <p class="ask">How was your visit?</p>
       <p class="sub">Tell us in 30 seconds. Photos welcome!</p>
       <img class="qr" src="qr-feedback.svg" alt="QR code to the feedback page">
       <p class="scan">Scan with your phone camera</p>
-      <p class="url">clearwater-coffee.up.railway.app/feedback</p>
+      <p class="url">nook-cafe.up.railway.app/feedback</p>
     </section>
     <section class="card">
       <img class="logo" src="../public/logo.svg" alt="">
-      <div class="wordmark">CLEARWATER<small>COFFEE</small></div>
+      <div class="wordmark"><span class="nook">N<i class="o"></i><i class="o"></i>K</span><small>café</small></div>
       <p class="ask">How was your visit?</p>
       <p class="sub">Tell us in 30 seconds. Photos welcome!</p>
       <img class="qr" src="qr-feedback.svg" alt="QR code to the feedback page">
       <p class="scan">Scan with your phone camera</p>
-      <p class="url">clearwater-coffee.up.railway.app/feedback</p>
+      <p class="url">nook-cafe.up.railway.app/feedback</p>
     </section>
     <section class="card">
       <img class="logo" src="../public/logo.svg" alt="">
-      <div class="wordmark">CLEARWATER<small>COFFEE</small></div>
+      <div class="wordmark"><span class="nook">N<i class="o"></i><i class="o"></i>K</span><small>café</small></div>
       <p class="ask">How was your visit?</p>
       <p class="sub">Tell us in 30 seconds. Photos welcome!</p>
       <img class="qr" src="qr-feedback.svg" alt="QR code to the feedback page">
       <p class="scan">Scan with your phone camera</p>
-      <p class="url">clearwater-coffee.up.railway.app/feedback</p>
+      <p class="url">nook-cafe.up.railway.app/feedback</p>
     </section>
     <section class="card">
       <img class="logo" src="../public/logo.svg" alt="">
-      <div class="wordmark">CLEARWATER<small>COFFEE</small></div>
+      <div class="wordmark"><span class="nook">N<i class="o"></i><i class="o"></i>K</span><small>café</small></div>
       <p class="ask">How was your visit?</p>
       <p class="sub">Tell us in 30 seconds. Photos welcome!</p>
       <img class="qr" src="qr-feedback.svg" alt="QR code to the feedback page">
       <p class="scan">Scan with your phone camera</p>
-      <p class="url">clearwater-coffee.up.railway.app/feedback</p>
+      <p class="url">nook-cafe.up.railway.app/feedback</p>
     </section>
   </div>
 </body>
